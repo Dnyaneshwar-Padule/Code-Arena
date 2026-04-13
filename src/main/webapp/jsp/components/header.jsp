@@ -1,10 +1,11 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
+<%@ taglib prefix="c" uri="jakarta.tags.core" %>
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CP Portal | Home</title>
+    <title>${not empty pageTitle ? pageTitle : 'CP Portal | Home'}</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH"
           crossorigin="anonymous">
@@ -32,6 +33,30 @@
             box-shadow: 0 0.5rem 1rem rgba(13, 110, 253, 0.2);
         }
 
+        @media (max-width: 991.98px) {
+            .navbar-collapse.collapse:not(.show) {
+                display: none !important;
+            }
+
+            #mainNavbar {
+                background-color: #ffffff;
+                padding-top: 0.75rem;
+                padding-bottom: 0.5rem;
+            }
+
+            #mainNavbar .nav-link {
+                color: #212529 !important;
+            }
+
+            #mainNavbar .nav-link.active {
+                color: #0d6efd !important;
+            }
+
+            #mainNavbar .auth-actions {
+                margin-top: 0.75rem;
+            }
+        }
+
         @keyframes fadeSlideUp {
             from {
                 opacity: 0;
@@ -46,7 +71,7 @@
 </head>
 <body class="bg-light text-dark d-flex flex-column min-vh-100">
 <header>
-    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top">
+    <nav class="navbar navbar-expand-lg bg-white border-bottom sticky-top shadow-sm">
         <div class="container">
             <a class="navbar-brand fw-semibold" href="${pageContext.request.contextPath}/index.jsp">CP Portal</a>
             <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mainNavbar"
@@ -62,9 +87,19 @@
                     <li class="nav-item"><a class="nav-link" href="#">Leaderboard</a></li>
                 </ul>
 
-                <div class="d-flex gap-2">
-                    <a class="btn btn-outline-primary btn-sm" href="#">Login</a>
-                    <a class="btn btn-primary btn-sm" href="${pageContext.request.contextPath}/register">Register</a>
+                <div class="d-flex gap-2 auth-actions">
+                    <c:choose>
+                        <c:when test="${not empty sessionScope.loggedInUser}">
+                            <span class="align-self-center text-secondary small">
+                                Hi, ${sessionScope.loggedInUser.username}
+                            </span>
+                            <a class="btn btn-outline-danger btn-sm" href="${pageContext.request.contextPath}/logout">Logout</a>
+                        </c:when>
+                        <c:otherwise>
+                            <a class="btn btn-outline-primary btn-sm" href="${pageContext.request.contextPath}/login">Login</a>
+                            <a class="btn btn-primary btn-sm" href="${pageContext.request.contextPath}/register">Register</a>
+                        </c:otherwise>
+                    </c:choose>
                 </div>
             </div>
         </div>

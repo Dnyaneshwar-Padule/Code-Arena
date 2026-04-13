@@ -8,9 +8,13 @@ import model.User;
  */
 public interface UserService {
 
-    void registerUser(User user);
+    User registerUser(String username, String email, String password);
+
+    User loginUser(String email, String password);
 
     User getUserById(Long id);
+
+    User getUserByEmail(String email);
 
     User getUserByUsername(String username);
 }
