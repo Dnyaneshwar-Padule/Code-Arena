@@ -17,5 +17,13 @@
 
         <!-- Entity mappings -->
         <mapping class="model.User"/>
+        <mapping class="model.Problem"/>
+        <mapping class="model.TestCase"/>
+        <mapping class="model.Submission"/>
+        <mapping class="model.SubmissionResult"/>
+        <mapping class="model.Contest"/>
+        <mapping class="model.ContestProblem"/>
+        <mapping class="model.ContestRegistration"/>
+        <mapping class="model.Leaderboard"/>
     </session-factory>
 </hibernate-configuration>
