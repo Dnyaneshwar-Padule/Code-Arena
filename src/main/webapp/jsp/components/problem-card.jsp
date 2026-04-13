@@ -28,7 +28,7 @@
         </div>
 
         <c:if test="${showAdminActions}">
-            <div class="d-flex gap-2 mt-3">
+            <div class="d-flex flex-wrap gap-2 mt-3">
                 <a class="btn btn-sm btn-primary" href="${pageContext.request.contextPath}/admin/problem/edit?id=${problem.id}">Edit</a>
                 <a class="btn btn-sm btn-outline-secondary" href="${pageContext.request.contextPath}/admin/problem/testcase?problemId=${problem.id}">
                     Add Test Case

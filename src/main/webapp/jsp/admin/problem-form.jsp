@@ -59,8 +59,14 @@
                                 </div>
                             </div>
 
-                            <div class="d-flex gap-2 mt-4">
+                            <div class="d-flex gap-2 mt-5">
                                 <button type="submit" class="btn btn-primary">Save</button>
+                                <c:if test="${formMode == 'edit'}">
+                                    <a class="btn btn-outline-secondary"
+                                       href="${pageContext.request.contextPath}/admin/problem/testcase?problemId=${problem.id}">
+                                        Add Test Case
+                                    </a>
+                                </c:if>
                                 <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/problems">Cancel</a>
                             </div>
                         </form>
