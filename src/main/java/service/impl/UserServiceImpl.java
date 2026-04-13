@@ -7,6 +7,7 @@ import exception.DaoException;
 import exception.ServiceException;
 import exception.ValidationException;
 import model.User;
+import model.UserRole;
 import service.UserService;
 import util.HashUtil;
 
@@ -137,4 +138,22 @@ public class UserServiceImpl implements UserService {
             throw new ServiceException("Unable to load user details.", ex);
         }
     }
+
+	@Override
+	public User createAdmin(String username, String email, String password) {
+		User admin = new User();
+	
+        String salt = HashUtil.generateSalt();
+        String passwordHash = HashUtil.hashPassword(password, salt);
+		
+		admin.setUsername(username);
+		admin.setEmail(email);
+		admin.setRole(UserRole.ADMIN);
+		
+        admin.setSalt(salt);
+        admin.setPasswordHash(passwordHash);
+
+        userDAO.saveUser(admin);
+        return admin;
+	}
 }

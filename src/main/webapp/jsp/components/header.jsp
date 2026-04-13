@@ -82,9 +82,14 @@
             <div class="collapse navbar-collapse" id="mainNavbar">
                 <ul class="navbar-nav me-auto mb-2 mb-lg-0">
                     <li class="nav-item"><a class="nav-link active" href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Problems</a></li>
+                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/problems">Problems</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Contests</a></li>
                     <li class="nav-item"><a class="nav-link" href="#">Leaderboard</a></li>
+                    <c:if test="${not empty sessionScope.loggedInUser and sessionScope.loggedInUser.role == 'ADMIN'}">
+                        <li class="nav-item">
+                            <a class="nav-link" href="${pageContext.request.contextPath}/admin/problems">Admin</a>
+                        </li>
+                    </c:if>
                 </ul>
 
                 <div class="d-flex gap-2 auth-actions">

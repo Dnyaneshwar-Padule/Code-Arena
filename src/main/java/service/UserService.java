@@ -17,4 +17,6 @@ public interface UserService {
     User getUserByEmail(String email);
 
     User getUserByUsername(String username);
+    
+    User createAdmin(String username, String email, String password);
 }
