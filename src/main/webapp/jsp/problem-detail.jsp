@@ -125,12 +125,9 @@
                                     </div>
 
                                     <div class="mb-3 flex-grow-1">
-                                        <label for="code" class="form-label fw-semibold">Code Editor</label>
-                                        <textarea id="code" name="code" class="form-control editor-textarea" spellcheck="false">public class Main {
-    public static void main(String[] args) {
-        // your code here
-    }
-}</textarea>
+                                        <label for="editor" class="form-label fw-semibold">Code Editor</label>
+                                        <div id="editor" class="border rounded" style="height: 400px;"></div>
+                                        <input type="hidden" id="code" name="code">
                                     </div>
 
                                     <div class="d-flex gap-2 mt-auto">
@@ -157,21 +154,78 @@
     </section>
 </main>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
 <script>
     (function () {
         const languageSelect = document.getElementById('language');
         const codeInput = document.getElementById('code');
-        if (!languageSelect || !codeInput) {
+        const editorContainer = document.getElementById('editor');
+        const submitForm = document.querySelector('form[action$="/submit"]');
+        if (!languageSelect || !codeInput || !editorContainer || !submitForm || typeof require === 'undefined') {
             return;
         }
+
         const templates = {
-            C: "#include <stdio.h>\\n\\nint main() {\\n    // your code here\\n    return 0;\\n}\\n",
-            CPP: "#include <bits/stdc++.h>\\nusing namespace std;\\n\\nint main() {\\n    // your code here\\n    return 0;\\n}\\n",
-            JAVA: "public class Main {\\n    public static void main(String[] args) {\\n        // your code here\\n    }\\n}\\n",
-            PYTHON: "# your code here\\n"
+            C: `#include <stdio.h>
+
+int main() {
+    // your code here
+    return 0;
+}
+`,
+            CPP: `#include <bits/stdc++.h>
+using namespace std;
+
+int main() {
+    // your code here
+    return 0;
+}
+`,
+            JAVA: `public class Main {
+    public static void main(String[] args) {
+        // your code here
+    }
+}
+`,
+            PYTHON: `# your code here
+`
         };
-        languageSelect.addEventListener('change', function () {
-            codeInput.value = templates[this.value] || "";
+
+        const monacoLanguages = {
+            C: 'c',
+            CPP: 'cpp',
+            JAVA: 'java',
+            PYTHON: 'python'
+        };
+
+        require.config({
+            paths: {
+                vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs'
+            }
+        });
+
+        require(['vs/editor/editor.main'], function () {
+            const defaultLanguage = languageSelect.value || 'JAVA';
+            const editor = monaco.editor.create(editorContainer, {
+                value: templates[defaultLanguage] || '',
+                language: monacoLanguages[defaultLanguage] || 'java',
+                theme: 'vs-dark',
+                automaticLayout: true,
+                minimap: {enabled: false}
+            });
+
+            languageSelect.addEventListener('change', function () {
+                const selectedLanguage = this.value;
+                const model = editor.getModel();
+                if (model) {
+                    monaco.editor.setModelLanguage(model, monacoLanguages[selectedLanguage] || 'java');
+                }
+                editor.setValue(templates[selectedLanguage] || '');
+            });
+
+            submitForm.addEventListener('submit', function () {
+                codeInput.value = editor.getValue();
+            });
         });
     })();
 </script>
