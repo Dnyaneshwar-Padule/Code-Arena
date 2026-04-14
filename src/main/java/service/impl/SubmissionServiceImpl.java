@@ -60,7 +60,7 @@ public class SubmissionServiceImpl implements SubmissionService {
             submission.setProblem(problem);
             submission.setCode(code.trim());
             submission.setLanguage(Language.fromValue(language).name());
-            submission.setStatus(SubmissionStatus.ERROR);
+            submission.setStatus(SubmissionStatus.PENDING);
 
             Submission savedSubmission = submissionDAO.createSubmission(submission);
             JudgeResult judgeResult = judgeService.judge(savedSubmission);

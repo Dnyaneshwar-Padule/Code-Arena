@@ -30,7 +30,7 @@
                         <div class="col-md-6">
                             <div class="border rounded-3 p-3 bg-white h-100">
                                 <h2 class="h6 fw-semibold">Memory Limit</h2>
-                                <p class="mb-0 text-secondary">${problem.memoryLimit} MB</p>
+                                <p class="mb-0 text-secondary">${problem.memoryLimit} KB</p>
                             </div>
                         </div>
                     </div>

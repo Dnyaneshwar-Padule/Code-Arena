@@ -1,7 +1,22 @@
 package judge;
 
 /**
- * Mock Python executor.
+ * Docker-based Python executor.
  */
-public class PythonExecutor extends AbstractMockExecutor {
+public class PythonExecutor extends AbstractDockerExecutor {
+
+    @Override
+    protected String getSourceFileName() {
+        return "main.py";
+    }
+
+    @Override
+    protected String getDockerImage() {
+        return "python:3";
+    }
+
+    @Override
+    protected String getCompileAndRunCommand() {
+        return "python3 main.py";
+    }
 }

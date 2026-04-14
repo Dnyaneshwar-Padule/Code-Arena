@@ -2,6 +2,7 @@
 
 .description-clamp-2 {
     display: -webkit-box;
+    line-clamp: 2;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
@@ -18,10 +19,14 @@
     height: 100%;
 }
 
-.editor-textarea {
-    min-height: 400px;
-    font-family: Consolas, "Courier New", monospace;
-    font-size: 0.95rem;
+.editor-workspace {
+    min-height: 0;
+}
+
+.editor-monaco {
+    height: clamp(360px, 48vh, 620px);
+    min-height: 360px;
+    max-height: 620px;
 }
 
 .section-pre {
@@ -45,5 +50,11 @@
 
     .editor-column-divider {
         border-left: 1px solid #dee2e6;
+    }
+
+    .editor-monaco {
+        height: clamp(420px, 52vh, 760px);
+        min-height: 420px;
+        max-height: 760px;
     }
 }

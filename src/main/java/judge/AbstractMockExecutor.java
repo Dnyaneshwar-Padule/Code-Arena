@@ -11,15 +11,15 @@ abstract class AbstractMockExecutor implements CodeExecutor {
         String normalizedCode = code == null ? "" : code;
 
         if (normalizedCode.contains("RUNTIME_ERROR")) {
-            return new ExecutionResult("", elapsed(startedAt), ExecutionStatus.ERROR);
+            return new ExecutionResult("", "Runtime error during mocked execution.", elapsed(startedAt), ExecutionStatus.ERROR);
         }
 
         if (normalizedCode.contains("WRONG_ANSWER")) {
-            return new ExecutionResult("wrong_output", elapsed(startedAt), ExecutionStatus.WRONG);
+            return new ExecutionResult("wrong_output", "", elapsed(startedAt), ExecutionStatus.WRONG);
         }
 
         String output = mockOutput(input);
-        return new ExecutionResult(output, elapsed(startedAt), ExecutionStatus.ACCEPTED);
+        return new ExecutionResult(output, "", elapsed(startedAt), ExecutionStatus.ACCEPTED);
     }
 
     protected String mockOutput(String input) {

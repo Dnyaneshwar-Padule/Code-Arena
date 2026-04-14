@@ -33,7 +33,7 @@
                                     <div class="col-6">
                                         <div class="border rounded-3 p-2 bg-white">
                                             <small class="fw-semibold d-block">Memory Limit</small>
-                                            <span class="text-secondary">${problem.memoryLimit} MB</span>
+                                            <span class="text-secondary">${problem.memoryLimit} KB</span>
                                         </div>
                                     </div>
                                 </div>
@@ -140,9 +140,9 @@
                                         </select>
                                     </div>
 
-                                    <div class="mb-3 flex-grow-1">
+                                    <div class="mb-3 flex-grow-1 d-flex flex-column editor-workspace">
                                         <label for="editor" class="form-label fw-semibold">Code Editor</label>
-                                        <div id="editor" class="border rounded" style="height: 400px;"></div>
+                                        <div id="editor" class="border rounded editor-monaco"></div>
                                         <input type="hidden" id="code" name="code">
                                     </div>
 
@@ -158,6 +158,8 @@
                                         <p class="mb-2"><strong>Status:</strong> ${empty submissionStatus ? '-' : submissionStatus}</p>
                                         <p class="mb-2"><strong>Output:</strong></p>
                                         <pre class="bg-light border rounded p-3 mb-2 section-pre"><code>${empty submissionOutput ? 'No output yet.' : submissionOutput}</code></pre>
+                                        <p class="mb-2"><strong>Error:</strong></p>
+                                        <pre class="bg-light border rounded p-3 mb-2 section-pre"><code>${empty submissionError ? '-' : submissionError}</code></pre>
                                         <p class="mb-0"><strong>Execution Time:</strong> ${empty submissionExecutionTime ? '-' : submissionExecutionTime} ms</p>
                                     </div>
                                 </div>

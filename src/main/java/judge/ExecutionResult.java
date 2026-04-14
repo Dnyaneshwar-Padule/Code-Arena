@@ -6,14 +6,16 @@ package judge;
 public class ExecutionResult {
 
     private String output;
+    private String error;
     private long executionTime;
     private ExecutionStatus status;
 
     public ExecutionResult() {
     }
 
-    public ExecutionResult(String output, long executionTime, ExecutionStatus status) {
+    public ExecutionResult(String output, String error, long executionTime, ExecutionStatus status) {
         this.output = output;
+        this.error = error;
         this.executionTime = executionTime;
         this.status = status;
     }
@@ -24,6 +26,14 @@ public class ExecutionResult {
 
     public void setOutput(String output) {
         this.output = output;
+    }
+
+    public String getError() {
+        return error;
+    }
+
+    public void setError(String error) {
+        this.error = error;
     }
 
     public long getExecutionTime() {

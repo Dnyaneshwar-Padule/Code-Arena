@@ -107,7 +107,7 @@
                                            value="${problem.timeLimit}" required>
                                 </div>
                                 <div class="col-md-4">
-                                    <label for="memoryLimit" class="form-label">Memory Limit (MB)</label>
+                                    <label for="memoryLimit" class="form-label">Memory Limit (KB)</label>
                                     <input id="memoryLimit" name="memoryLimit" type="number" class="form-control"
                                            value="${problem.memoryLimit}" required>
                                 </div>

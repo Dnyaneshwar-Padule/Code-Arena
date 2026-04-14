@@ -6,5 +6,9 @@ package judge;
 public enum ExecutionStatus {
     ACCEPTED,
     WRONG,
-    ERROR
+    TIME_LIMIT_EXCEEDED,
+    MEMORY_LIMIT_EXCEEDED,
+    RUNTIME_ERROR,
+    COMPILATION_ERROR,
+    OUTPUT_LIMIT_EXCEEDED
 }

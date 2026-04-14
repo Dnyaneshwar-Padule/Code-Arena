@@ -209,7 +209,7 @@ public class ProblemServiceImpl implements ProblemService {
             throw new ValidationException("Time limit must be a positive number.");
         }
         if (memoryLimit == null || memoryLimit <= 0) {
-            throw new ValidationException("Memory limit must be a positive number.");
+            throw new ValidationException("Memory limit (KB) must be a positive number.");
         }
 
         ProblemDifficulty parsedDifficulty;

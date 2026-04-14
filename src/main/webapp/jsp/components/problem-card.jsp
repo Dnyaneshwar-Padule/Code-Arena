@@ -25,7 +25,7 @@
                href="${pageContext.request.contextPath}${showAdminActions ? '/admin/problem?id=' : '/problem?id='}${problem.id}">
                 View Details
             </a>
-            <small class="text-secondary">${problem.timeLimit} ms | ${problem.memoryLimit} MB</small>
+            <small class="text-secondary">${problem.timeLimit} ms | ${problem.memoryLimit} KB</small>
         </div>
 
         <c:if test="${showAdminActions}">

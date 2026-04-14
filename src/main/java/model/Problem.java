@@ -36,6 +36,7 @@ public class Problem {
     private Integer timeLimit;
 
     @Column(name = "memory_limit", nullable = false)
+    // Stored as kilobytes (KB).
     private Integer memoryLimit;
 
     @Column(name = "input_format", columnDefinition = "TEXT")
