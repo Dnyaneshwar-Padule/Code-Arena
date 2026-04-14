@@ -44,16 +44,21 @@ public class JudgeServiceImpl implements JudgeService {
 
         List<TestCase> testCases = testCaseService.getAllByProblemId(submission.getProblem().getId());
         if (testCases.isEmpty()) {
-            return new JudgeResult(SubmissionStatus.ERROR, "", "No test cases configured.", 0L);
+            JudgeResult emptyResult = new JudgeResult(SubmissionStatus.ERROR, "", "No test cases configured.", 0L);
+            emptyResult.setPassedCount(0);
+            emptyResult.setTotalCount(0);
+            return emptyResult;
         }
 
         CodeExecutor executor = executorFactory.getExecutor(language);
         long totalTime = 0L;
         String lastOutput = "";
+        int passedCount = 0;
+        int totalCount = testCases.size();
         for (TestCase testCase : testCases) {
             ExecutionResult executionResult;
             try {
-                executionResult = executor.execute(submission.getCode(), testCase.getInput());
+                executionResult = executor.execute(submission.getCode(), normalizeInputForExecution(testCase.getInput()));
             } catch (Exception ex) {
                 throw new ServiceException("Executor failed unexpectedly.", ex);
             }
@@ -62,7 +67,7 @@ public class JudgeServiceImpl implements JudgeService {
 
             if (executionResult.getStatus() != ExecutionStatus.ACCEPTED
                     && executionResult.getStatus() != ExecutionStatus.WRONG) {
-                return new JudgeResult(
+                JudgeResult failedResult = new JudgeResult(
                         SubmissionStatus.ERROR,
                         lastOutput,
                         safe(executionResult.getError()).isBlank()
@@ -70,19 +75,62 @@ public class JudgeServiceImpl implements JudgeService {
                                 : executionResult.getError(),
                         totalTime
                 );
+                applyProgressDetails(
+                        failedResult,
+                        passedCount,
+                        totalCount,
+                        testCase.getInput(),
+                        testCase.getExpectedOutput(),
+                        lastOutput
+                );
+                return failedResult;
             }
 
-            if (!normalize(lastOutput).equals(normalize(testCase.getExpectedOutput()))
+            if (!normalizeOutput(lastOutput).equals(normalizeOutput(testCase.getExpectedOutput()))
                     || executionResult.getStatus() == ExecutionStatus.WRONG) {
-                return new JudgeResult(SubmissionStatus.WRONG, lastOutput, null, totalTime);
+                JudgeResult wrongResult = new JudgeResult(SubmissionStatus.WRONG, lastOutput, null, totalTime);
+                applyProgressDetails(
+                        wrongResult,
+                        passedCount,
+                        totalCount,
+                        testCase.getInput(),
+                        testCase.getExpectedOutput(),
+                        lastOutput
+                );
+                return wrongResult;
             }
+            passedCount++;
         }
 
-        return new JudgeResult(SubmissionStatus.ACCEPTED, lastOutput, null, totalTime);
+        JudgeResult acceptedResult = new JudgeResult(SubmissionStatus.ACCEPTED, lastOutput, null, totalTime);
+        acceptedResult.setPassedCount(passedCount);
+        acceptedResult.setTotalCount(totalCount);
+        return acceptedResult;
     }
 
-    private String normalize(String value) {
-        return value == null ? "" : value.trim();
+    private void applyProgressDetails(
+            JudgeResult result,
+            int passedCount,
+            int totalCount,
+            String failedInput,
+            String expectedOutput,
+            String actualOutput
+    ) {
+        result.setPassedCount(passedCount);
+        result.setTotalCount(totalCount);
+        result.setFailedInput(safe(failedInput));
+        result.setFailedExpectedOutput(safe(expectedOutput));
+        result.setFailedActualOutput(safe(actualOutput));
+    }
+
+    private String normalizeInputForExecution(String value) {
+        String normalized = value == null ? "" : value.trim();
+        return "NA".equalsIgnoreCase(normalized) ? "" : value == null ? "" : value;
+    }
+
+    private String normalizeOutput(String value) {
+        String normalized = value == null ? "" : value.trim();
+        return normalized.replaceAll("\\s+", " ");
     }
 
     private String safe(String value) {

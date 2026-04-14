@@ -11,6 +11,11 @@ public class JudgeResult {
     private String output;
     private String errorMessage;
     private long executionTime;
+    private int passedCount;
+    private int totalCount;
+    private String failedInput;
+    private String failedExpectedOutput;
+    private String failedActualOutput;
 
     public JudgeResult() {
     }
@@ -52,5 +57,45 @@ public class JudgeResult {
 
     public void setExecutionTime(long executionTime) {
         this.executionTime = executionTime;
+    }
+
+    public int getPassedCount() {
+        return passedCount;
+    }
+
+    public void setPassedCount(int passedCount) {
+        this.passedCount = passedCount;
+    }
+
+    public int getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(int totalCount) {
+        this.totalCount = totalCount;
+    }
+
+    public String getFailedInput() {
+        return failedInput;
+    }
+
+    public void setFailedInput(String failedInput) {
+        this.failedInput = failedInput;
+    }
+
+    public String getFailedExpectedOutput() {
+        return failedExpectedOutput;
+    }
+
+    public void setFailedExpectedOutput(String failedExpectedOutput) {
+        this.failedExpectedOutput = failedExpectedOutput;
+    }
+
+    public String getFailedActualOutput() {
+        return failedActualOutput;
+    }
+
+    public void setFailedActualOutput(String failedActualOutput) {
+        this.failedActualOutput = failedActualOutput;
     }
 }
