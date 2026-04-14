@@ -22,6 +22,8 @@ import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
+import org.hibernate.Hibernate;
+
 /**
  * Default implementation for submission and judging workflow.
  */
@@ -68,9 +70,12 @@ public class SubmissionServiceImpl implements SubmissionService {
             submission.setTotalCount(0);
 
             savedSubmission = submissionDAO.createSubmission(submission);
-            // Judge using the in-memory submission graph to avoid lazy proxy access
-            // on detached Hibernate entities after DAO session closes.
-            JudgeResult judgeResult = judgeService.judge(submission);
+            
+            JudgeResult judgeResult = judgeService.judge(
+                    problemId,
+                    submission.getCode(),
+                    submission.getLanguage()
+            );
 
             return updateSubmissionWithJudgeResult(savedSubmission, judgeResult);
         } catch (ValidationException ex) {

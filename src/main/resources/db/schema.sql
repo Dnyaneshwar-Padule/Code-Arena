@@ -50,7 +50,7 @@ CREATE TABLE IF NOT EXISTS submissions (
     execution_time INT,
     memory_used INT,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    CONSTRAINT chk_submissions_status CHECK (status IN ('ACCEPTED', 'WRONG', 'ERROR'))
+    CONSTRAINT chk_submissions_status CHECK (status IN ('ACCEPTED', 'WRONG', 'ERROR', 'PENDING', 'TIME_LIMIT_EXCEEDED', 'RUNTIME_ERROR', 'COMPILATION_ERROR'))
 );
 
 CREATE TABLE IF NOT EXISTS submission_results (

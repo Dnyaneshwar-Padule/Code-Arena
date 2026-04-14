@@ -1,5 +1,7 @@
 package service.impl;
 
+import dao.ProblemDAO;
+import dao.impl.ProblemDAOImpl;
 import exception.ServiceException;
 import exception.ValidationException;
 import judge.CodeExecutor;
@@ -8,7 +10,7 @@ import judge.ExecutionStatus;
 import judge.JudgeResult;
 import judge.LanguageExecutorFactory;
 import model.Language;
-import model.Submission;
+import model.Problem;
 import model.SubmissionStatus;
 import model.TestCase;
 import service.JudgeService;
@@ -16,33 +18,50 @@ import service.TestCaseService;
 
 import java.util.List;
 
+import org.hibernate.Hibernate;
+
 /**
  * Default implementation of submission judging logic.
  */
 public class JudgeServiceImpl implements JudgeService {
 
+    private final ProblemDAO problemDAO;
     private final TestCaseService testCaseService;
     private final LanguageExecutorFactory executorFactory;
 
     public JudgeServiceImpl() {
+        this.problemDAO = new ProblemDAOImpl();
         this.testCaseService = new TestCaseServiceImpl();
         this.executorFactory = new LanguageExecutorFactory();
     }
 
     @Override
-    public JudgeResult judge(Submission submission) {
-        if (submission == null || submission.getProblem() == null || submission.getProblem().getId() == null) {
-            throw new ValidationException("Submission problem is required.");
+    public JudgeResult judge(Long problemId, String code, String languageRaw) {
+        if (problemId == null || problemId <= 0) {
+            throw new ValidationException("Invalid problem id.");
+        }
+        if (code == null || code.trim().isEmpty()) {
+            throw new ValidationException("Code is required.");
+        }
+        if (languageRaw == null || languageRaw.trim().isEmpty()) {
+            throw new ValidationException("Language is required.");
         }
 
         Language language;
         try {
-            language = Language.fromValue(submission.getLanguage());
+            language = Language.fromValue(languageRaw.trim());
         } catch (IllegalArgumentException ex) {
             throw new ValidationException("Unsupported language.");
         }
 
-        List<TestCase> testCases = testCaseService.getAllByProblemId(submission.getProblem().getId());
+        Problem problem = problemDAO.getProblemById(problemId);
+        if (problem == null) {
+            throw new ValidationException("Problem not found.");
+        }
+
+        
+        List<TestCase> testCases = testCaseService.getAllByProblemId(problemId);
+        
         if (testCases.isEmpty()) {
             JudgeResult emptyResult = new JudgeResult(SubmissionStatus.ERROR, "", "No test cases configured.", 0L);
             emptyResult.setPassedCount(0);
@@ -55,12 +74,12 @@ public class JudgeServiceImpl implements JudgeService {
         String lastOutput = "";
         int passedCount = 0;
         int totalCount = testCases.size();
-        applyProblemLimits(submission);
+        applyProblemLimits(problem);
         try {
             for (TestCase testCase : testCases) {
                 ExecutionResult executionResult;
                 try {
-                    executionResult = executor.execute(submission.getCode(), normalizeInputForExecution(testCase.getInput()));
+                    executionResult = executor.execute(code, normalizeInputForExecution(testCase.getInput()));
                 } catch (Exception ex) {
                     throw new ServiceException("Executor failed unexpectedly.", ex);
                 }
@@ -154,9 +173,9 @@ public class JudgeServiceImpl implements JudgeService {
         return value == null ? "" : value;
     }
 
-    private void applyProblemLimits(Submission submission) {
-        Integer problemTimeLimit = submission.getProblem().getTimeLimit();
-        Integer problemMemoryLimit = submission.getProblem().getMemoryLimit();
+    private void applyProblemLimits(Problem problem) {
+        Integer problemTimeLimit = problem.getTimeLimit();
+        Integer problemMemoryLimit = problem.getMemoryLimit();
         if (problemTimeLimit != null && problemTimeLimit > 0) {
             System.setProperty("codearena.problem.time.limit.ms", String.valueOf(problemTimeLimit));
         }

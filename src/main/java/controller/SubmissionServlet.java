@@ -40,52 +40,35 @@ public class SubmissionServlet extends HttpServlet {
             throws ServletException, IOException {
         User loggedInUser = getLoggedInUser(request);
         if (loggedInUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            writeJson(response, "{\"error\":\"Unauthorized\"}");
             return;
         }
 
-        Long problemId = null;
         try {
-            problemId = parseLong(getTrimmedParameter(request, "problemId"));
+            Long problemId = parseLong(getTrimmedParameter(request, "problemId"));
             String code = getTrimmedParameter(request, "code");
             String language = getTrimmedParameter(request, "language");
 
             Submission submission = submissionService.submit(loggedInUser.getId(), problemId, code, language);
-
-            Problem problem = problemService.getProblemById(problemId);
-            request.setAttribute("problem", problem);
-            request.setAttribute("sampleTestCases", testCaseService.getSampleByProblemId(problemId));
-            request.setAttribute("submissionStatus", submission.getStatus());
-            request.setAttribute("submissionOutput", submission.getOutput());
-            request.setAttribute("submissionError", submission.getErrorMessage());
-            request.setAttribute("submissionExecutionTime", submission.getExecutionTime());
-            request.setAttribute("submissionPassedCount", submission.getPassedCount());
-            request.setAttribute("submissionTotalCount", submission.getTotalCount());
-            request.setAttribute("submissions", submissionService.getUserSubmissions(problemId, loggedInUser.getId()));
-            request.setAttribute("activeTab", "run");
-            request.getRequestDispatcher("/jsp/problem-detail.jsp").forward(request, response);
+            String json = "{"
+                    + "\"status\":\"" + escapeJson(String.valueOf(submission.getStatus())) + "\","
+                    + "\"executionTime\":" + safeNumber(submission.getExecutionTime()) + ","
+                    + "\"passedCount\":" + safeNumber(submission.getPassedCount()) + ","
+                    + "\"totalCount\":" + safeNumber(submission.getTotalCount()) + ","
+                    + "\"output\":\"" + escapeJson(submission.getOutput()) + "\","
+                    + "\"error\":\"" + escapeJson(submission.getErrorMessage()) + "\""
+                    + "}";
+            writeJson(response, json);
+        } catch (ValidationException ex) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            writeJson(response, "{\"error\":\"" + escapeJson(ex.getMessage()) + "\"}");
         } catch (ServiceException ex) {
-            if (problemId != null) {
-                attachProblemContext(request, problemId);
-            }
-            ErrorHandlerUtil.handleException(
-                    request,
-                    response,
-                    ex,
-                    "Unable to process submission right now.",
-                    "/jsp/problem-detail.jsp"
-            );
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            writeJson(response, "{\"error\":\"" + escapeJson(ex.getMessage()) + "\"}");
         } catch (Exception ex) {
-            if (problemId != null) {
-                attachProblemContext(request, problemId);
-            }
-            ErrorHandlerUtil.handleException(
-                    request,
-                    response,
-                    ex,
-                    "Unable to process submission right now.",
-                    "/jsp/problem-detail.jsp"
-            );
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            writeJson(response, "{\"error\":\"Unable to process submission right now.\"}");
         }
     }
 
@@ -160,5 +143,27 @@ public class SubmissionServlet extends HttpServlet {
     private String getTrimmedParameter(HttpServletRequest request, String parameterName) {
         String value = request.getParameter(parameterName);
         return value == null ? null : value.trim();
+    }
+
+    private void writeJson(HttpServletResponse response, String json) throws IOException {
+        response.setContentType("application/json");
+        response.setCharacterEncoding("UTF-8");
+        response.getWriter().write(json);
+    }
+
+    private String safeNumber(Number value) {
+        return value == null ? "0" : String.valueOf(value);
+    }
+
+    private String escapeJson(String value) {
+        if (value == null) {
+            return "";
+        }
+        return value
+                .replace("\\", "\\\\")
+                .replace("\"", "\\\"")
+                .replace("\n", "\\n")
+                .replace("\r", "\\r")
+                .replace("\t", "\\t");
     }
 }
