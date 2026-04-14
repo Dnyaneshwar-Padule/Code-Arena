@@ -1,5 +1,6 @@
 <%@ page contentType="text/html;charset=UTF-8" language="java" %>
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
+<%@ taglib prefix="fn" uri="jakarta.tags.functions" %>
 <c:set var="pageTitle" value="Problem Detail | CP Portal" scope="request"/>
 <%@ include file="components/header.jsp" %>
 
@@ -44,32 +45,38 @@
 
                                 <section class="mb-4">
                                     <h2 class="h6 fw-semibold">Input Format</h2>
-                                    <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>
-                                        <c:choose>
-                                            <c:when test="${not empty problem.inputFormat}">${problem.inputFormat}</c:when>
-                                            <c:otherwise>Not specified.</c:otherwise>
-                                        </c:choose>
-                                    </code></pre>
+                                    <c:choose>
+                                        <c:when test="${not empty problem.inputFormat}">
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">${fn:trim(problem.inputFormat)}</pre>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">Not specified.</pre>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </section>
 
                                 <section class="mb-4">
                                     <h2 class="h6 fw-semibold">Output Format</h2>
-                                    <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>
-                                        <c:choose>
-                                            <c:when test="${not empty problem.outputFormat}">${problem.outputFormat}</c:when>
-                                            <c:otherwise>Not specified.</c:otherwise>
-                                        </c:choose>
-                                    </code></pre>
+                                    <c:choose>
+                                        <c:when test="${not empty problem.outputFormat}">
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">${fn:trim(problem.outputFormat)}</pre>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">Not specified.</pre>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </section>
 
                                 <section class="mb-4">
                                     <h2 class="h6 fw-semibold">Constraints</h2>
-                                    <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>
-                                        <c:choose>
-                                            <c:when test="${not empty problem.constraints}">${problem.constraints}</c:when>
-                                            <c:otherwise>Not specified.</c:otherwise>
-                                        </c:choose>
-                                    </code></pre>
+                                    <c:choose>
+                                        <c:when test="${not empty problem.constraints}">
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">${fn:trim(problem.constraints)}</pre>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">Not specified.</pre>
+                                        </c:otherwise>
+                                    </c:choose>
                                 </section>
 
                                 <section>
