@@ -59,7 +59,7 @@ public class SubmissionServlet extends HttpServlet {
             request.setAttribute("submissionError", submission.getErrorMessage());
             request.setAttribute("submissionExecutionTime", submission.getExecutionTime());
             request.getRequestDispatcher("/jsp/problem-detail.jsp").forward(request, response);
-        } catch (ValidationException | ServiceException ex) {
+        } catch (ServiceException ex) {
             if (problemId != null) {
                 attachProblemContext(request, problemId);
             }
