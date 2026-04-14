@@ -114,8 +114,24 @@
                                 <form method="post" action="${pageContext.request.contextPath}/submit" class="d-flex flex-column h-100">
                                     <input type="hidden" name="problemId" value="${problem.id}">
 
+                                    <div class="alert alert-info mb-3" role="alert">
+                                        Read input from standard input (stdin) and print output to standard output (stdout).
+                                    </div>
+
+                                    <div class="card mb-3">
+                                        <div class="card-body py-3">
+                                            <h2 class="h6 fw-semibold mb-2">Input Format</h2>
+                                            <pre class="bg-light border rounded p-2 mb-0 section-pre">${not empty problem.inputFormat ? fn:trim(problem.inputFormat) : 'Not specified.'}</pre>
+                                        </div>
+                                    </div>
+
                                     <div class="mb-3">
-                                        <label for="language" class="form-label fw-semibold">Language</label>
+                                        <div class="d-flex justify-content-between align-items-center mb-1">
+                                            <label for="language" class="form-label fw-semibold mb-0">Language</label>
+                                            <button type="button" id="editorThemeToggle" class="btn btn-outline-secondary btn-sm">
+                                                Light Mode
+                                            </button>
+                                        </div>
                                         <select id="language" name="language" class="form-select">
                                             <option value="C">C</option>
                                             <option value="CPP">C++</option>
@@ -161,7 +177,8 @@
         const codeInput = document.getElementById('code');
         const editorContainer = document.getElementById('editor');
         const submitForm = document.querySelector('form[action$="/submit"]');
-        if (!languageSelect || !codeInput || !editorContainer || !submitForm || typeof require === 'undefined') {
+        const themeToggleButton = document.getElementById('editorThemeToggle');
+        if (!languageSelect || !codeInput || !editorContainer || !submitForm || !themeToggleButton || typeof require === 'undefined') {
             return;
         }
 
@@ -169,7 +186,16 @@
             C: `#include <stdio.h>
 
 int main() {
-    // your code here
+    int n;
+    if (scanf("%d", &n) != 1) {
+        return 0;
+    }
+
+    // read remaining input
+
+    // logic
+
+    // print output
     return 0;
 }
 `,
@@ -177,17 +203,58 @@ int main() {
 using namespace std;
 
 int main() {
-    // your code here
+    ios::sync_with_stdio(false);
+    cin.tie(nullptr);
+
+    int n;
+    if (!(cin >> n)) {
+        return 0;
+    }
+
+    // read remaining input
+
+    // logic
+
+    // print output
     return 0;
 }
 `,
-            JAVA: `public class Main {
+            JAVA: `import java.util.*;
+
+public class Main {
     public static void main(String[] args) {
-        // your code here
+        Scanner sc = new Scanner(System.in);
+
+        if (!sc.hasNextInt()) {
+            return;
+        }
+        int n = sc.nextInt();
+
+        // read remaining input
+
+        // logic
+
+        // print output
     }
 }
 `,
-            PYTHON: `# your code here
+            PYTHON: `import sys
+
+def main():
+    data = sys.stdin.read().strip().split()
+    if not data:
+        return
+
+    n = int(data[0])
+
+    # read remaining input
+
+    # logic
+
+    # print output
+
+if __name__ == "__main__":
+    main()
 `
         };
 
@@ -206,6 +273,7 @@ int main() {
 
         require(['vs/editor/editor.main'], function () {
             const defaultLanguage = languageSelect.value || 'JAVA';
+            let isDarkTheme = true;
             const editor = monaco.editor.create(editorContainer, {
                 value: templates[defaultLanguage] || '',
                 language: monacoLanguages[defaultLanguage] || 'java',
@@ -225,6 +293,12 @@ int main() {
 
             submitForm.addEventListener('submit', function () {
                 codeInput.value = editor.getValue();
+            });
+
+            themeToggleButton.addEventListener('click', function () {
+                isDarkTheme = !isDarkTheme;
+                monaco.editor.setTheme(isDarkTheme ? 'vs-dark' : 'vs');
+                themeToggleButton.textContent = isDarkTheme ? 'Light Mode' : 'Dark Mode';
             });
         });
     })();
