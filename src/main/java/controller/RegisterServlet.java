@@ -35,9 +35,9 @@ public class RegisterServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            String username = request.getParameter("username");
-            String email = request.getParameter("email");
-            String password = request.getParameter("password");
+            String username = getTrimmedParameter(request, "username");
+            String email = getTrimmedParameter(request, "email");
+            String password = getTrimmedParameter(request, "password");
 
             User registeredUser = userService.registerUser(username, email, password);
             SessionUtil.createSession(request, registeredUser);
@@ -47,5 +47,10 @@ public class RegisterServlet extends HttpServlet {
         } catch (Exception ex) {
             ErrorHandlerUtil.handleException(request, response, ex, REGISTER_ERROR_FALLBACK, "/jsp/register.jsp");
         }
+    }
+
+    private String getTrimmedParameter(HttpServletRequest request, String parameterName) {
+        String value = request.getParameter(parameterName);
+        return value == null ? null : value.trim();
     }
 }

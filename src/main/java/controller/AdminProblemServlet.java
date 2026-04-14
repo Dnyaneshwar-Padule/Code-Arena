@@ -148,14 +148,14 @@ public class AdminProblemServlet extends HttpServlet {
             throws IOException, ServletException {
         try {
             problemService.createProblem(
-                    request.getParameter("title"),
-                    request.getParameter("description"),
-                    request.getParameter("difficulty"),
-                    parseInteger(request.getParameter("timeLimit")),
-                    parseInteger(request.getParameter("memoryLimit")),
-                    request.getParameter("inputFormat"),
-                    request.getParameter("outputFormat"),
-                    request.getParameter("constraints")
+                    getTrimmedParameter(request, "title"),
+                    getTrimmedParameter(request, "description"),
+                    getTrimmedParameter(request, "difficulty"),
+                    parseInteger(getTrimmedParameter(request, "timeLimit")),
+                    parseInteger(getTrimmedParameter(request, "memoryLimit")),
+                    getTrimmedParameter(request, "inputFormat"),
+                    getTrimmedParameter(request, "outputFormat"),
+                    getTrimmedParameter(request, "constraints")
             );
             response.sendRedirect(request.getContextPath() + "/admin/problems");
         } catch (ServiceException ex) {
@@ -176,14 +176,14 @@ public class AdminProblemServlet extends HttpServlet {
             Long id = parseLong(request.getParameter("id"));
             problemService.updateProblem(
                     id,
-                    request.getParameter("title"),
-                    request.getParameter("description"),
-                    request.getParameter("difficulty"),
-                    parseInteger(request.getParameter("timeLimit")),
-                    parseInteger(request.getParameter("memoryLimit")),
-                    request.getParameter("inputFormat"),
-                    request.getParameter("outputFormat"),
-                    request.getParameter("constraints")
+                    getTrimmedParameter(request, "title"),
+                    getTrimmedParameter(request, "description"),
+                    getTrimmedParameter(request, "difficulty"),
+                    parseInteger(getTrimmedParameter(request, "timeLimit")),
+                    parseInteger(getTrimmedParameter(request, "memoryLimit")),
+                    getTrimmedParameter(request, "inputFormat"),
+                    getTrimmedParameter(request, "outputFormat"),
+                    getTrimmedParameter(request, "constraints")
             );
             response.sendRedirect(request.getContextPath() + "/admin/problems");
         } catch (ServiceException ex) {
@@ -251,18 +251,18 @@ public class AdminProblemServlet extends HttpServlet {
     private void addTestCase(HttpServletRequest request, HttpServletResponse response)
             throws IOException, ServletException {
         try {
-            Long problemId = parseLong(request.getParameter("problemId"));
-            boolean isSample = "on".equalsIgnoreCase(request.getParameter("isSample"));
+            Long problemId = parseLong(getTrimmedParameter(request, "problemId"));
+            boolean isSample = "on".equalsIgnoreCase(getTrimmedParameter(request, "isSample"));
             testCaseService.addTestCase(
                     problemId,
-                    request.getParameter("input"),
-                    request.getParameter("expectedOutput"),
+                    getTrimmedParameter(request, "input"),
+                    getTrimmedParameter(request, "expectedOutput"),
                     isSample
             );
             response.sendRedirect(request.getContextPath() + "/admin/problem?id=" + problemId);
         } catch (ServiceException ex) {
             Long fallbackProblemId = null;
-            String problemIdRaw = request.getParameter("problemId");
+            String problemIdRaw = getTrimmedParameter(request, "problemId");
             if (problemIdRaw != null && !problemIdRaw.isBlank()) {
                 try {
                     fallbackProblemId = Long.valueOf(problemIdRaw);
@@ -291,14 +291,14 @@ public class AdminProblemServlet extends HttpServlet {
             throws IOException, ServletException {
         Long fallbackProblemId = null;
         try {
-            Long testCaseId = parseLong(request.getParameter("id"));
-            Long problemId = parseLong(request.getParameter("problemId"));
-            boolean isSample = "on".equalsIgnoreCase(request.getParameter("isSample"));
+            Long testCaseId = parseLong(getTrimmedParameter(request, "id"));
+            Long problemId = parseLong(getTrimmedParameter(request, "problemId"));
+            boolean isSample = "on".equalsIgnoreCase(getTrimmedParameter(request, "isSample"));
             fallbackProblemId = problemId;
             testCaseService.updateTestCase(
                     testCaseId,
-                    request.getParameter("input"),
-                    request.getParameter("expectedOutput"),
+                    getTrimmedParameter(request, "input"),
+                    getTrimmedParameter(request, "expectedOutput"),
                     isSample
             );
             response.sendRedirect(request.getContextPath() + "/admin/problem?id=" + problemId);
@@ -322,7 +322,7 @@ public class AdminProblemServlet extends HttpServlet {
     }
 
     private void deleteTestCase(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        String problemIdRaw = request.getParameter("problemId");
+        String problemIdRaw = getTrimmedParameter(request, "problemId");
         String redirectUrl = request.getContextPath() + "/admin/problems";
         if (problemIdRaw != null && !problemIdRaw.isBlank()) {
             redirectUrl = request.getContextPath() + "/admin/problem?id=" + problemIdRaw;
@@ -346,22 +346,24 @@ public class AdminProblemServlet extends HttpServlet {
     }
 
     private Long parseLong(String rawValue) {
-        if (rawValue == null || rawValue.isBlank()) {
+        String trimmedValue = rawValue == null ? null : rawValue.trim();
+        if (trimmedValue == null || trimmedValue.isBlank()) {
             throw new ValidationException("Invalid problem id.");
         }
         try {
-            return Long.valueOf(rawValue);
+            return Long.valueOf(trimmedValue);
         } catch (NumberFormatException ex) {
             throw new ValidationException("Invalid problem id.");
         }
     }
 
     private Integer parseInteger(String rawValue) {
-        if (rawValue == null || rawValue.isBlank()) {
+        String trimmedValue = rawValue == null ? null : rawValue.trim();
+        if (trimmedValue == null || trimmedValue.isBlank()) {
             throw new ValidationException("Numeric fields are required.");
         }
         try {
-            return Integer.valueOf(rawValue);
+            return Integer.valueOf(trimmedValue);
         } catch (NumberFormatException ex) {
             throw new ValidationException("Numeric fields must be valid numbers.");
         }
@@ -369,7 +371,7 @@ public class AdminProblemServlet extends HttpServlet {
 
     private Problem buildProblemFromRequest(HttpServletRequest request) {
         Problem problem = new Problem();
-        String idRaw = request.getParameter("id");
+        String idRaw = getTrimmedParameter(request, "id");
         if (idRaw != null && !idRaw.isBlank()) {
             try {
                 problem.setId(Long.valueOf(idRaw));
@@ -377,12 +379,12 @@ public class AdminProblemServlet extends HttpServlet {
                 // Ignore invalid id in prefill object.
             }
         }
-        problem.setTitle(request.getParameter("title"));
-        problem.setDescription(request.getParameter("description"));
-        problem.setInputFormat(request.getParameter("inputFormat"));
-        problem.setOutputFormat(request.getParameter("outputFormat"));
-        problem.setConstraints(request.getParameter("constraints"));
-        String timeLimit = request.getParameter("timeLimit");
+        problem.setTitle(getTrimmedParameter(request, "title"));
+        problem.setDescription(getTrimmedParameter(request, "description"));
+        problem.setInputFormat(getTrimmedParameter(request, "inputFormat"));
+        problem.setOutputFormat(getTrimmedParameter(request, "outputFormat"));
+        problem.setConstraints(getTrimmedParameter(request, "constraints"));
+        String timeLimit = getTrimmedParameter(request, "timeLimit");
         if (timeLimit != null && !timeLimit.isBlank()) {
             try {
                 problem.setTimeLimit(Integer.valueOf(timeLimit));
@@ -390,7 +392,7 @@ public class AdminProblemServlet extends HttpServlet {
                 // Ignore invalid value in prefill object.
             }
         }
-        String memoryLimit = request.getParameter("memoryLimit");
+        String memoryLimit = getTrimmedParameter(request, "memoryLimit");
         if (memoryLimit != null && !memoryLimit.isBlank()) {
             try {
                 problem.setMemoryLimit(Integer.valueOf(memoryLimit));
@@ -399,5 +401,10 @@ public class AdminProblemServlet extends HttpServlet {
             }
         }
         return problem;
+    }
+
+    private String getTrimmedParameter(HttpServletRequest request, String parameterName) {
+        String value = request.getParameter(parameterName);
+        return value == null ? null : value.trim();
     }
 }

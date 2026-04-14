@@ -35,8 +35,8 @@ public class LoginServlet extends HttpServlet {
     protected void doPost(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         try {
-            String email = request.getParameter("email");
-            String password = request.getParameter("password");
+            String email = getTrimmedParameter(request, "email");
+            String password = getTrimmedParameter(request, "password");
 
             User user = userService.loginUser(email, password);
             SessionUtil.createSession(request, user);
@@ -46,5 +46,10 @@ public class LoginServlet extends HttpServlet {
         } catch (Exception ex) {
             ErrorHandlerUtil.handleException(request, response, ex, LOGIN_ERROR_FALLBACK, "/jsp/login.jsp");
         }
+    }
+
+    private String getTrimmedParameter(HttpServletRequest request, String parameterName) {
+        String value = request.getParameter(parameterName);
+        return value == null ? null : value.trim();
     }
 }

@@ -121,22 +121,24 @@ public class ProblemServlet extends HttpServlet {
     }
 
     private Long parseLong(String rawValue) {
-        if (rawValue == null || rawValue.isBlank()) {
+        String trimmedValue = rawValue == null ? null : rawValue.trim();
+        if (trimmedValue == null || trimmedValue.isBlank()) {
             return null;
         }
         try {
-            return Long.valueOf(rawValue);
+            return Long.valueOf(trimmedValue);
         } catch (NumberFormatException ex) {
             throw new ValidationException("Invalid problem id.");
         }
     }
 
     private int parsePositiveIntOrDefault(String rawValue, int defaultValue) {
-        if (rawValue == null || rawValue.isBlank()) {
+        String trimmedValue = rawValue == null ? null : rawValue.trim();
+        if (trimmedValue == null || trimmedValue.isBlank()) {
             return defaultValue;
         }
         try {
-            int parsed = Integer.parseInt(rawValue);
+            int parsed = Integer.parseInt(trimmedValue);
             return parsed > 0 ? parsed : defaultValue;
         } catch (NumberFormatException ex) {
             return defaultValue;
