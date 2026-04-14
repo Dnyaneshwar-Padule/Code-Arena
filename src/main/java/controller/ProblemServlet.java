@@ -8,8 +8,10 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Problem;
+import service.TestCaseService;
 import service.ProblemService;
 import service.impl.ProblemServiceImpl;
+import service.impl.TestCaseServiceImpl;
 import util.ErrorHandlerUtil;
 
 import java.io.IOException;
@@ -19,10 +21,12 @@ import java.util.List;
 public class ProblemServlet extends HttpServlet {
 
     private transient ProblemService problemService;
+    private transient TestCaseService testCaseService;
 
     @Override
     public void init() throws ServletException {
         this.problemService = new ProblemServiceImpl();
+        this.testCaseService = new TestCaseServiceImpl();
     }
 
     @Override
@@ -85,6 +89,7 @@ public class ProblemServlet extends HttpServlet {
             Long id = parseLong(request.getParameter("id"));
             Problem problem = problemService.getProblemById(id);
             request.setAttribute("problem", problem);
+            request.setAttribute("sampleTestCases", testCaseService.getSampleByProblemId(id));
             request.getRequestDispatcher("/jsp/problem-detail.jsp").forward(request, response);
         } catch (ValidationException ex) {
             ErrorHandlerUtil.handleException(

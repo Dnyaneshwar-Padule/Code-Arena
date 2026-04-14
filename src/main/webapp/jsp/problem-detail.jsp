@@ -34,6 +34,34 @@
                             </div>
                         </div>
                     </div>
+
+                    <section class="mt-4">
+                        <h2 class="h5 fw-semibold mb-3">Sample Test Cases</h2>
+                        <c:choose>
+                            <c:when test="${empty sampleTestCases}">
+                                <p class="text-secondary mb-0">No sample test cases available for this problem.</p>
+                            </c:when>
+                            <c:otherwise>
+                                <div class="row g-3">
+                                    <c:forEach var="testCase" items="${sampleTestCases}" varStatus="status">
+                                        <div class="col-12">
+                                            <div class="border rounded-3 p-3 bg-white">
+                                                <h3 class="h6 fw-bold mb-3">Sample ${status.index + 1}</h3>
+                                                <div class="mb-3">
+                                                    <p class="fw-semibold mb-1">Input</p>
+                                                    <pre class="bg-light border rounded p-3 mb-0"><code>${testCase.input}</code></pre>
+                                                </div>
+                                                <div>
+                                                    <p class="fw-semibold mb-1">Expected Output</p>
+                                                    <pre class="bg-light border rounded p-3 mb-0"><code>${testCase.expectedOutput}</code></pre>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </c:forEach>
+                                </div>
+                            </c:otherwise>
+                        </c:choose>
+                    </section>
                 </div>
             </article>
         </c:if>

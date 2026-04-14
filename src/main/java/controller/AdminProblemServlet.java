@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Problem;
+import model.TestCase;
 import model.User;
 import model.UserRole;
 import service.ProblemService;
@@ -28,7 +29,10 @@ import java.util.List;
                 "/admin/problem/edit",
                 "/admin/problem/update",
                 "/admin/problem/delete",
-                "/admin/problem/testcase"
+                "/admin/problem/testcase",
+                "/admin/problem/testcase/edit",
+                "/admin/problem/testcase/update",
+                "/admin/problem/testcase/delete"
         }
 )
 public class AdminProblemServlet extends HttpServlet {
@@ -53,6 +57,7 @@ public class AdminProblemServlet extends HttpServlet {
         String path = request.getServletPath();
         switch (path) {
             case "/admin/problems" -> showAdminProblems(request, response);
+            case "/admin/problem" -> showProblemDetail(request, response);
             case "/admin/problem/create" -> {
                 request.setAttribute("formMode", "create");
                 request.getRequestDispatcher("/jsp/admin/problem-form.jsp").forward(request, response);
@@ -60,6 +65,8 @@ public class AdminProblemServlet extends HttpServlet {
             case "/admin/problem/edit" -> showEditForm(request, response);
             case "/admin/problem/delete" -> deleteProblem(request, response);
             case "/admin/problem/testcase" -> showTestCaseForm(request, response);
+            case "/admin/problem/testcase/edit" -> showEditTestCaseForm(request, response);
+            case "/admin/problem/testcase/delete" -> deleteTestCase(request, response);
             default -> response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
@@ -77,6 +84,7 @@ public class AdminProblemServlet extends HttpServlet {
             case "/admin/problem" -> createProblem(request, response);
             case "/admin/problem/update" -> updateProblem(request, response);
             case "/admin/problem/testcase" -> addTestCase(request, response);
+            case "/admin/problem/testcase/update" -> updateTestCase(request, response);
             default -> response.sendError(HttpServletResponse.SC_NOT_FOUND);
         }
     }
@@ -112,6 +120,25 @@ public class AdminProblemServlet extends HttpServlet {
                     response,
                     ex,
                     "Unable to load problem for editing.",
+                    "/jsp/admin/problems.jsp"
+            );
+        }
+    }
+
+    private void showProblemDetail(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            Long id = parseLong(request.getParameter("id"));
+            Problem problem = problemService.getProblemById(id);
+            request.setAttribute("problem", problem);
+            request.setAttribute("testCases", testCaseService.getAllByProblemId(id));
+            request.getRequestDispatcher("/jsp/admin/problem-detail.jsp").forward(request, response);
+        } catch (ServiceException ex) {
+            ErrorHandlerUtil.handleException(
+                    request,
+                    response,
+                    ex,
+                    "Unable to load problem details.",
                     "/jsp/admin/problems.jsp"
             );
         }
@@ -182,6 +209,7 @@ public class AdminProblemServlet extends HttpServlet {
             Long problemId = parseLong(request.getParameter("problemId"));
             Problem problem = problemService.getProblemById(problemId);
             request.setAttribute("problem", problem);
+            request.setAttribute("formMode", "create");
             request.getRequestDispatcher("/jsp/admin/test-case-form.jsp").forward(request, response);
         } catch (ServiceException ex) {
             ErrorHandlerUtil.handleException(
@@ -189,6 +217,26 @@ public class AdminProblemServlet extends HttpServlet {
                     response,
                     ex,
                     "Unable to load test case form.",
+                    "/jsp/admin/problems.jsp"
+            );
+        }
+    }
+
+    private void showEditTestCaseForm(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        try {
+            Long testCaseId = parseLong(request.getParameter("id"));
+            TestCase testCase = testCaseService.getTestCaseById(testCaseId);
+            request.setAttribute("problem", testCase.getProblem());
+            request.setAttribute("testCase", testCase);
+            request.setAttribute("formMode", "edit");
+            request.getRequestDispatcher("/jsp/admin/test-case-form.jsp").forward(request, response);
+        } catch (ServiceException ex) {
+            ErrorHandlerUtil.handleException(
+                    request,
+                    response,
+                    ex,
+                    "Unable to load test case for editing.",
                     "/jsp/admin/problems.jsp"
             );
         }
@@ -205,7 +253,7 @@ public class AdminProblemServlet extends HttpServlet {
                     request.getParameter("expectedOutput"),
                     isSample
             );
-            response.sendRedirect(request.getContextPath() + "/admin/problem/edit?id=" + problemId);
+            response.sendRedirect(request.getContextPath() + "/admin/problem?id=" + problemId);
         } catch (ServiceException ex) {
             Long fallbackProblemId = null;
             String problemIdRaw = request.getParameter("problemId");
@@ -231,6 +279,55 @@ public class AdminProblemServlet extends HttpServlet {
                     "/jsp/admin/test-case-form.jsp"
             );
         }
+    }
+
+    private void updateTestCase(HttpServletRequest request, HttpServletResponse response)
+            throws IOException, ServletException {
+        Long fallbackProblemId = null;
+        try {
+            Long testCaseId = parseLong(request.getParameter("id"));
+            Long problemId = parseLong(request.getParameter("problemId"));
+            boolean isSample = "on".equalsIgnoreCase(request.getParameter("isSample"));
+            fallbackProblemId = problemId;
+            testCaseService.updateTestCase(
+                    testCaseId,
+                    request.getParameter("input"),
+                    request.getParameter("expectedOutput"),
+                    isSample
+            );
+            response.sendRedirect(request.getContextPath() + "/admin/problem?id=" + problemId);
+        } catch (ServiceException ex) {
+            if (fallbackProblemId != null) {
+                try {
+                    request.setAttribute("problem", problemService.getProblemById(fallbackProblemId));
+                } catch (ServiceException ignored) {
+                    // Keep original error path if problem lookup fails.
+                }
+            }
+            request.setAttribute("formMode", "edit");
+            ErrorHandlerUtil.handleException(
+                    request,
+                    response,
+                    ex,
+                    "Unable to update test case.",
+                    "/jsp/admin/test-case-form.jsp"
+            );
+        }
+    }
+
+    private void deleteTestCase(HttpServletRequest request, HttpServletResponse response) throws IOException {
+        String problemIdRaw = request.getParameter("problemId");
+        String redirectUrl = request.getContextPath() + "/admin/problems";
+        if (problemIdRaw != null && !problemIdRaw.isBlank()) {
+            redirectUrl = request.getContextPath() + "/admin/problem?id=" + problemIdRaw;
+        }
+        try {
+            Long testCaseId = parseLong(request.getParameter("id"));
+            testCaseService.deleteTestCase(testCaseId);
+        } catch (ServiceException ex) {
+            // Keep delete flow simple: redirect back with graceful no-op on failure.
+        }
+        response.sendRedirect(redirectUrl);
     }
 
     private boolean isAdmin(HttpServletRequest request) {

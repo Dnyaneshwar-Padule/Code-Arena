@@ -16,12 +16,13 @@
                 </c:otherwise>
             </c:choose>
         </div>
-        <p class="text-secondary mb-3">
+        <p class="text-secondary mb-3 description-clamp-2" title="${problem.description}">
             ${problem.description}
         </p>
 
         <div class="d-flex align-items-center justify-content-between mt-auto">
-            <a class="btn btn-outline-primary btn-sm" href="${pageContext.request.contextPath}/problem?id=${problem.id}">
+            <a class="btn btn-outline-primary btn-sm"
+               href="${pageContext.request.contextPath}${showAdminActions ? '/admin/problem?id=' : '/problem?id='}${problem.id}">
                 View Details
             </a>
             <small class="text-secondary">${problem.timeLimit} ms | ${problem.memoryLimit} MB</small>
