@@ -7,16 +7,10 @@ import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import model.Problem;
 import model.Submission;
 import model.User;
-import service.ProblemService;
 import service.SubmissionService;
-import service.TestCaseService;
-import service.impl.ProblemServiceImpl;
 import service.impl.SubmissionServiceImpl;
-import service.impl.TestCaseServiceImpl;
-import util.ErrorHandlerUtil;
 
 import java.io.IOException;
 import java.util.List;
@@ -25,14 +19,10 @@ import java.util.List;
 public class SubmissionServlet extends HttpServlet {
 
     private transient SubmissionService submissionService;
-    private transient ProblemService problemService;
-    private transient TestCaseService testCaseService;
 
     @Override
     public void init() throws ServletException {
         this.submissionService = new SubmissionServiceImpl();
-        this.problemService = new ProblemServiceImpl();
-        this.testCaseService = new TestCaseServiceImpl();
     }
 
     @Override
@@ -60,6 +50,7 @@ public class SubmissionServlet extends HttpServlet {
                     + "\"error\":\"" + escapeJson(submission.getErrorMessage()) + "\""
                     + "}";
             writeJson(response, json);
+            return;
         } catch (ValidationException ex) {
             response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
             writeJson(response, "{\"error\":\"" + escapeJson(ex.getMessage()) + "\"}");
@@ -77,44 +68,24 @@ public class SubmissionServlet extends HttpServlet {
             throws ServletException, IOException {
         User loggedInUser = getLoggedInUser(request);
         if (loggedInUser == null) {
-            response.sendRedirect(request.getContextPath() + "/login");
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            writeJson(response, "{\"error\":\"Unauthorized\"}");
             return;
         }
 
-        Long problemId = null;
         try {
-            problemId = parseLong(getTrimmedParameter(request, "problemId"));
-            Problem problem = problemService.getProblemById(problemId);
+            Long problemId = parseLong(getTrimmedParameter(request, "problemId"));
             List<Submission> submissions = submissionService.getUserSubmissions(problemId, loggedInUser.getId());
-            request.setAttribute("problem", problem);
-            request.setAttribute("sampleTestCases", testCaseService.getSampleByProblemId(problemId));
-            request.setAttribute("submissions", submissions);
-            request.setAttribute("activeTab", "submissions");
-            request.getRequestDispatcher("/jsp/problem-detail.jsp").forward(request, response);
+            writeJson(response, buildSubmissionsJson(submissions));
+        } catch (ValidationException ex) {
+            response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            writeJson(response, "{\"error\":\"" + escapeJson(ex.getMessage()) + "\"}");
+        } catch (ServiceException ex) {
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            writeJson(response, "{\"error\":\"" + escapeJson(ex.getMessage()) + "\"}");
         } catch (Exception ex) {
-            if (problemId != null) {
-                attachProblemContext(request, problemId);
-            }
-            ErrorHandlerUtil.handleException(
-                    request,
-                    response,
-                    ex,
-                    "Unable to load submission history right now.",
-                    "/jsp/problem-detail.jsp"
-            );
-        }
-    }
-
-    private void attachProblemContext(HttpServletRequest request, Long problemId) {
-        try {
-            request.setAttribute("problem", problemService.getProblemById(problemId));
-            request.setAttribute("sampleTestCases", testCaseService.getSampleByProblemId(problemId));
-            User loggedInUser = getLoggedInUser(request);
-            if (loggedInUser != null) {
-                request.setAttribute("submissions", submissionService.getUserSubmissions(problemId, loggedInUser.getId()));
-            }
-        } catch (Exception ignored) {
-            // Keep error path resilient if context lookup fails.
+            response.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            writeJson(response, "{\"error\":\"Unable to load submission history right now.\"}");
         }
     }
 
@@ -149,6 +120,7 @@ public class SubmissionServlet extends HttpServlet {
         response.setContentType("application/json");
         response.setCharacterEncoding("UTF-8");
         response.getWriter().write(json);
+        response.getWriter().flush();
     }
 
     private String safeNumber(Number value) {
@@ -165,5 +137,25 @@ public class SubmissionServlet extends HttpServlet {
                 .replace("\n", "\\n")
                 .replace("\r", "\\r")
                 .replace("\t", "\\t");
+    }
+
+    private String buildSubmissionsJson(List<Submission> submissions) {
+        StringBuilder jsonBuilder = new StringBuilder();
+        jsonBuilder.append("{\"submissions\":[");
+        for (int i = 0; i < submissions.size(); i++) {
+            Submission submission = submissions.get(i);
+            if (i > 0) {
+                jsonBuilder.append(",");
+            }
+            jsonBuilder.append("{")
+                    .append("\"id\":").append(safeNumber(submission.getId())).append(",")
+                    .append("\"status\":\"").append(escapeJson(String.valueOf(submission.getStatus()))).append("\",")
+                    .append("\"language\":\"").append(escapeJson(submission.getLanguage())).append("\",")
+                    .append("\"executionTime\":").append(safeNumber(submission.getExecutionTime())).append(",")
+                    .append("\"createdAt\":\"").append(escapeJson(String.valueOf(submission.getCreatedAt()))).append("\"")
+                    .append("}");
+        }
+        jsonBuilder.append("]}");
+        return jsonBuilder.toString();
     }
 }

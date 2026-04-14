@@ -195,7 +195,7 @@
 
                         <div class="col-12 col-lg-6 editor-column-divider problem-detail-column">
                             <section class="editor-pane ps-lg-3 d-flex flex-column">
-                                <form method="post" action="${pageContext.request.contextPath}/submit" class="d-flex flex-column h-100">
+                                <form id="submitForm" method="post" action="${pageContext.request.contextPath}/submit" class="d-flex flex-column h-100">
                                     <input type="hidden" name="problemId" value="${problem.id}">
 
                                     <div class="alert alert-info mb-3" role="alert">
@@ -284,7 +284,8 @@
         const languageSelect = document.getElementById('language');
         const codeInput = document.getElementById('code');
         const editorContainer = document.getElementById('editor');
-        const submitForm = document.querySelector('form[action$="/submit"]');
+        // const submitForm = document.querySelector('form[action$="/submit"]');
+        const submitForm = document.getElementById('submitForm');
         const themeToggleButton = document.getElementById('editorThemeToggle');
         const runButton = document.getElementById('runButton');
         const submitButton = document.getElementById('submitButton');
@@ -423,12 +424,42 @@ if __name__ == "__main__":
                 editor.setValue(templates[selectedLanguage] || '');
             });
 
-            submitForm.addEventListener('submit', function () {
-                codeInput.value = editor.getValue();
+            submitForm.addEventListener('submit', async function (event) {
+                event.preventDefault();
+                const code = editor.getValue();
+                const language = languageSelect.value;
+                codeInput.value = code;
                 lockButtons('Submitting...', true);
-                window.setTimeout(function () {
+                try {
+                    const body = new URLSearchParams();
+                    body.set('code', code);
+                    body.set('language', language);
+                    body.set('problemId', problemIdInput.value);
+
+                    const response = await fetch('${pageContext.request.contextPath}/submit', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                        },
+                        body: body.toString()
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(payload.error || 'Unable to process submission right now.');
+                    }
+                    applyResult(payload);
+                } catch (error) {
+                    applyResult({
+                        status: 'ERROR',
+                        output: '',
+                        error: error.message || 'Unable to process submission right now.',
+                        executionTime: '-',
+                        passedCount: 0,
+                        totalCount: 0
+                    });
+                } finally {
                     unlockButtons();
-                }, 15000);
+                }
             });
 
             themeToggleButton.addEventListener('click', function () {
