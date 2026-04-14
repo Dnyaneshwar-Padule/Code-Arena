@@ -45,6 +45,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     public Submission submit(Long userId, Long problemId, String code, String language) {
         validateInput(userId, problemId, code, language);
 
+        Submission savedSubmission = null;
         try {
             User user = userDAO.findById(userId);
             if (user == null) {
@@ -62,18 +63,16 @@ public class SubmissionServiceImpl implements SubmissionService {
             submission.setCode(code.trim());
             submission.setLanguage(Language.fromValue(language).name());
             submission.setStatus(SubmissionStatus.PENDING);
+            submission.setExecutionTime(0);
+            submission.setPassedCount(0);
+            submission.setTotalCount(0);
 
-            Submission savedSubmission = submissionDAO.createSubmission(submission);
-            JudgeResult judgeResult = judgeService.judge(savedSubmission);
+            savedSubmission = submissionDAO.createSubmission(submission);
+            // Judge using the in-memory submission graph to avoid lazy proxy access
+            // on detached Hibernate entities after DAO session closes.
+            JudgeResult judgeResult = judgeService.judge(submission);
 
-            savedSubmission.setStatus(judgeResult.getFinalStatus());
-            savedSubmission.setOutput(judgeResult.getOutput());
-            savedSubmission.setErrorMessage(judgeResult.getErrorMessage());
-            savedSubmission.setExecutionTime(toInteger(judgeResult.getExecutionTime()));
-            savedSubmission.setPassedCount(judgeResult.getPassedCount());
-            savedSubmission.setTotalCount(judgeResult.getTotalCount());
-
-            return submissionDAO.updateSubmission(savedSubmission);
+            return updateSubmissionWithJudgeResult(savedSubmission, judgeResult);
         } catch (ValidationException ex) {
             throw ex;
         } catch (DaoException ex) {
@@ -82,6 +81,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         } catch (IllegalArgumentException ex) {
             throw new ValidationException("Unsupported language.");
         } catch (Exception ex) {
+            markSubmissionAsError(savedSubmission);
             LOGGER.log(Level.SEVERE, "Unexpected submission workflow error", ex);
             throw new ServiceException("Unable to process submission right now.", ex);
         }
@@ -126,5 +126,33 @@ public class SubmissionServiceImpl implements SubmissionService {
             return Integer.MIN_VALUE;
         }
         return (int) value;
+    }
+
+    private Submission updateSubmissionWithJudgeResult(Submission savedSubmission, JudgeResult judgeResult) {
+        savedSubmission.setStatus(judgeResult.getFinalStatus());
+        savedSubmission.setOutput(judgeResult.getOutput());
+        savedSubmission.setErrorMessage(judgeResult.getErrorMessage());
+        savedSubmission.setExecutionTime(toInteger(judgeResult.getExecutionTime()));
+        savedSubmission.setPassedCount(judgeResult.getPassedCount());
+        savedSubmission.setTotalCount(judgeResult.getTotalCount());
+        return submissionDAO.updateSubmission(savedSubmission);
+    }
+
+    private void markSubmissionAsError(Submission savedSubmission) {
+        if (savedSubmission == null) {
+            return;
+        }
+        try {
+            savedSubmission.setStatus(SubmissionStatus.ERROR);
+            savedSubmission.setErrorMessage("Judge execution failed.");
+            savedSubmission.setExecutionTime(0);
+            savedSubmission.setPassedCount(0);
+            if (savedSubmission.getTotalCount() == null) {
+                savedSubmission.setTotalCount(0);
+            }
+            submissionDAO.updateSubmission(savedSubmission);
+        } catch (Exception updateFailure) {
+            LOGGER.log(Level.SEVERE, "Failed to persist ERROR status for submission " + savedSubmission.getId(), updateFailure);
+        }
     }
 }

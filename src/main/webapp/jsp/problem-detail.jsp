@@ -128,6 +128,7 @@
                                                             <th>Status</th>
                                                             <th>Language</th>
                                                             <th>Execution Time</th>
+                                                            <th>Passed</th>
                                                             <th>Submitted At</th>
                                                             <th class="text-end">Action</th>
                                                         </tr>
@@ -135,9 +136,18 @@
                                                         <tbody>
                                                         <c:forEach var="submissionItem" items="${submissions}">
                                                             <tr>
-                                                                <td><span class="badge text-bg-secondary">${submissionItem.status}</span></td>
+                                                                <td>
+                                                                    <span class="badge ${submissionItem.status == 'ACCEPTED' ? 'text-bg-success'
+                                                                            : submissionItem.status == 'WRONG' ? 'text-bg-danger'
+                                                                            : submissionItem.status == 'TIME_LIMIT_EXCEEDED' ? 'text-bg-warning'
+                                                                            : submissionItem.status == 'RUNTIME_ERROR' ? 'text-bg-danger'
+                                                                            : submissionItem.status == 'COMPILATION_ERROR' ? 'text-bg-dark'
+                                                                            : submissionItem.status == 'PENDING' ? 'text-bg-info'
+                                                                            : 'text-bg-secondary'}">${submissionItem.status}</span>
+                                                                </td>
                                                                 <td>${submissionItem.language}</td>
                                                                 <td>${empty submissionItem.executionTime ? '-' : submissionItem.executionTime} ms</td>
+                                                                <td>${empty submissionItem.passedCount ? '-' : submissionItem.passedCount}/${empty submissionItem.totalCount ? '-' : submissionItem.totalCount}</td>
                                                                 <td>${submissionItem.createdAt}</td>
                                                                 <td class="text-end">
                                                                     <button type="button"
@@ -164,6 +174,7 @@
                                                                     <p class="mb-2"><strong>Status:</strong> ${submissionItem.status}</p>
                                                                     <p class="mb-2"><strong>Language:</strong> ${submissionItem.language}</p>
                                                                     <p class="mb-2"><strong>Execution Time:</strong> ${empty submissionItem.executionTime ? '-' : submissionItem.executionTime} ms</p>
+                                                                    <p class="mb-2"><strong>Passed:</strong> ${empty submissionItem.passedCount ? '-' : submissionItem.passedCount}/${empty submissionItem.totalCount ? '-' : submissionItem.totalCount}</p>
                                                                     <p class="mb-1"><strong>Code:</strong></p>
                                                                     <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${submissionItem.code}</code></pre>
                                                                     <p class="mb-1"><strong>Output:</strong></p>

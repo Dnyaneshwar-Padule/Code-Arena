@@ -55,51 +55,52 @@ public class JudgeServiceImpl implements JudgeService {
         String lastOutput = "";
         int passedCount = 0;
         int totalCount = testCases.size();
-        for (TestCase testCase : testCases) {
-            ExecutionResult executionResult;
-            try {
-                executionResult = executor.execute(submission.getCode(), normalizeInputForExecution(testCase.getInput()));
-            } catch (Exception ex) {
-                throw new ServiceException("Executor failed unexpectedly.", ex);
-            }
-            totalTime += executionResult.getExecutionTime();
-            lastOutput = safe(executionResult.getOutput());
+        applyProblemLimits(submission);
+        try {
+            for (TestCase testCase : testCases) {
+                ExecutionResult executionResult;
+                try {
+                    executionResult = executor.execute(submission.getCode(), normalizeInputForExecution(testCase.getInput()));
+                } catch (Exception ex) {
+                    throw new ServiceException("Executor failed unexpectedly.", ex);
+                }
+                totalTime += executionResult.getExecutionTime();
+                lastOutput = safe(executionResult.getOutput());
 
-            if (executionResult.getStatus() != ExecutionStatus.ACCEPTED
-                    && executionResult.getStatus() != ExecutionStatus.WRONG) {
-                JudgeResult failedResult = new JudgeResult(
-                        mapExecutionStatusToSubmissionStatus(executionResult.getStatus()),
-                        lastOutput,
-                        safe(executionResult.getError()).isBlank()
-                                ? executionResult.getStatus().name()
-                                : executionResult.getError(),
-                        totalTime
-                );
-                applyProgressDetails(
-                        failedResult,
-                        passedCount,
-                        totalCount,
-                        testCase.getInput(),
-                        testCase.getExpectedOutput(),
-                        lastOutput
-                );
-                return failedResult;
-            }
+                if (executionResult.getStatus() != ExecutionStatus.ACCEPTED
+                        && executionResult.getStatus() != ExecutionStatus.WRONG) {
+                    JudgeResult failedResult = new JudgeResult(
+                            mapExecutionStatusToSubmissionStatus(executionResult.getStatus()),
+                            lastOutput,
+                            safe(executionResult.getError()).isBlank()
+                                    ? executionResult.getStatus().name()
+                                    : executionResult.getError(),
+                            totalTime
+                    );
+                    applyProgressDetails(
+                            failedResult,
+                            passedCount,
+                            totalCount,
+                            testCase
+                    );
+                    return failedResult;
+                }
 
-            if (!normalizeOutput(lastOutput).equals(normalizeOutput(testCase.getExpectedOutput()))
-                    || executionResult.getStatus() == ExecutionStatus.WRONG) {
-                JudgeResult wrongResult = new JudgeResult(SubmissionStatus.WRONG, lastOutput, null, totalTime);
-                applyProgressDetails(
-                        wrongResult,
-                        passedCount,
-                        totalCount,
-                        testCase.getInput(),
-                        testCase.getExpectedOutput(),
-                        lastOutput
-                );
-                return wrongResult;
+                if (!normalizeOutput(lastOutput).equals(normalizeOutput(testCase.getExpectedOutput()))
+                        || executionResult.getStatus() == ExecutionStatus.WRONG) {
+                    JudgeResult wrongResult = new JudgeResult(SubmissionStatus.WRONG, lastOutput, null, totalTime);
+                    applyProgressDetails(
+                            wrongResult,
+                            passedCount,
+                            totalCount,
+                            testCase
+                    );
+                    return wrongResult;
+                }
+                passedCount++;
             }
-            passedCount++;
+        } finally {
+            clearProblemLimits();
         }
 
         JudgeResult acceptedResult = new JudgeResult(SubmissionStatus.ACCEPTED, lastOutput, null, totalTime);
@@ -124,15 +125,19 @@ public class JudgeServiceImpl implements JudgeService {
             JudgeResult result,
             int passedCount,
             int totalCount,
-            String failedInput,
-            String expectedOutput,
-            String actualOutput
+            TestCase failedTestCase
     ) {
         result.setPassedCount(passedCount);
         result.setTotalCount(totalCount);
-        result.setFailedInput(safe(failedInput));
-        result.setFailedExpectedOutput(safe(expectedOutput));
-        result.setFailedActualOutput(safe(actualOutput));
+        if (Boolean.TRUE.equals(failedTestCase.getSample())) {
+            result.setFailedInput(safe(failedTestCase.getInput()));
+            result.setFailedExpectedOutput(safe(failedTestCase.getExpectedOutput()));
+            result.setFailedActualOutput(safe(result.getOutput()));
+        } else {
+            result.setFailedInput("");
+            result.setFailedExpectedOutput("");
+            result.setFailedActualOutput("");
+        }
     }
 
     private String normalizeInputForExecution(String value) {
@@ -147,5 +152,21 @@ public class JudgeServiceImpl implements JudgeService {
 
     private String safe(String value) {
         return value == null ? "" : value;
+    }
+
+    private void applyProblemLimits(Submission submission) {
+        Integer problemTimeLimit = submission.getProblem().getTimeLimit();
+        Integer problemMemoryLimit = submission.getProblem().getMemoryLimit();
+        if (problemTimeLimit != null && problemTimeLimit > 0) {
+            System.setProperty("codearena.problem.time.limit.ms", String.valueOf(problemTimeLimit));
+        }
+        if (problemMemoryLimit != null && problemMemoryLimit > 0) {
+            System.setProperty("codearena.problem.memory.limit.kb", String.valueOf(problemMemoryLimit));
+        }
+    }
+
+    private void clearProblemLimits() {
+        System.clearProperty("codearena.problem.time.limit.ms");
+        System.clearProperty("codearena.problem.memory.limit.kb");
     }
 }

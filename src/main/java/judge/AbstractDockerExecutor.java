@@ -17,7 +17,8 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractDockerExecutor implements CodeExecutor {
 
     private static final long GLOBAL_MAX_TIMEOUT_MS = 10_000L;
-    private static final int MAX_OUTPUT_BYTES = 10 * 1024;
+    private static final int DEFAULT_MAX_OUTPUT_BYTES = 10 * 1024;
+    private static final long DEFAULT_MEMORY_LIMIT_KB = 256L * 1024L;
     private static final int EXIT_CODE_COMPILATION_ERROR = 11;
     private static final int EXIT_CODE_RUNTIME_ERROR = 12;
     private static final int EXIT_CODE_TIME_LIMIT_EXCEEDED = 13;
@@ -52,7 +53,7 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
                     "64",
                     "--log-driver=none",
                     "--memory",
-                    "256m",
+                    resolveMemoryLimitForDockerArg(),
                     "--cpus",
                     "0.5",
                     "--tmpfs",
@@ -157,7 +158,19 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
         return Math.min(problemLimitMs, GLOBAL_MAX_TIMEOUT_MS);
     }
 
-    private long parsePositiveLong(String rawValue) {
+    private String resolveMemoryLimitForDockerArg() {
+        long memoryKb = parsePositiveLong(System.getenv("CODEARENA_PROBLEM_MEMORY_LIMIT_KB"));
+        if (memoryKb <= 0) {
+            memoryKb = parsePositiveLong(System.getProperty("codearena.problem.memory.limit.kb"));
+        }
+        if (memoryKb <= 0) {
+            memoryKb = DEFAULT_MEMORY_LIMIT_KB;
+        }
+        long memoryMb = Math.max(64L, memoryKb / 1024L);
+        return memoryMb + "m";
+    }
+
+    private static long parsePositiveLong(String rawValue) {
         if (rawValue == null || rawValue.isBlank()) {
             return -1L;
         }
@@ -232,7 +245,7 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
                     }
                     String candidate = builder.isEmpty() ? line : ("\n" + line);
                     int nextBytes = currentBytes + candidate.getBytes(StandardCharsets.UTF_8).length;
-                    if (nextBytes > MAX_OUTPUT_BYTES) {
+                    if (nextBytes > resolveMaxOutputBytes()) {
                         exceededLimit = true;
                         continue;
                     }
@@ -250,6 +263,17 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
 
         private boolean exceededLimit() {
             return exceededLimit;
+        }
+
+        private int resolveMaxOutputBytes() {
+            long configured = parsePositiveLong(System.getenv("CODEARENA_MAX_OUTPUT_BYTES"));
+            if (configured <= 0) {
+                configured = parsePositiveLong(System.getProperty("codearena.max.output.bytes"));
+            }
+            if (configured <= 0) {
+                configured = DEFAULT_MAX_OUTPUT_BYTES;
+            }
+            return (int) Math.min(Integer.MAX_VALUE, configured);
         }
     }
 }
