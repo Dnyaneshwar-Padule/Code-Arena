@@ -15,14 +15,48 @@
         <c:if test="${not empty problem}">
             <article class="card border-0 shadow-sm">
                 <div class="card-body p-3 p-md-4">
-                    <div class="row g-4 problem-detail-layout">
-                        <div class="col-12 col-lg-6 problem-detail-column">
-                            <section class="problem-pane pe-lg-3">
+                    <ul class="nav nav-tabs mb-3" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link ${activeTab == 'run' || activeTab == 'submissions' ? '' : 'active'}"
+                                    id="problem-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#problem-pane"
+                                    type="button"
+                                    role="tab">
+                                Problem
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link ${activeTab == 'run' ? 'active' : ''}"
+                                    id="run-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#run-pane"
+                                    type="button"
+                                    role="tab">
+                                Run
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link ${activeTab == 'submissions' ? 'active' : ''}"
+                                    id="submissions-tab"
+                                    data-bs-toggle="tab"
+                                    data-bs-target="#submissions-pane"
+                                    type="button"
+                                    role="tab">
+                                Submissions
+                            </button>
+                        </li>
+                    </ul>
+
+                    <div class="tab-content">
+                        <div class="tab-pane fade ${activeTab == 'run' || activeTab == 'submissions' ? '' : 'show active'}"
+                             id="problem-pane"
+                             role="tabpanel">
+                            <section class="problem-pane">
                                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                                     <h1 class="h3 fw-bold mb-0">${problem.title}</h1>
                                     <span class="badge text-bg-primary">${problem.difficulty}</span>
                                 </div>
-
                                 <div class="row g-2 mb-3">
                                     <div class="col-6">
                                         <div class="border rounded-3 p-2 bg-white">
@@ -37,48 +71,22 @@
                                         </div>
                                     </div>
                                 </div>
-
                                 <section class="mb-4">
                                     <h2 class="h6 fw-semibold">Description</h2>
                                     <p class="text-secondary mb-0 section-pre">${problem.description}</p>
                                 </section>
-
                                 <section class="mb-4">
                                     <h2 class="h6 fw-semibold">Input Format</h2>
-                                    <c:choose>
-                                        <c:when test="${not empty problem.inputFormat}">
-                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">${fn:trim(problem.inputFormat)}</pre>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">Not specified.</pre>
-                                        </c:otherwise>
-                                    </c:choose>
+                                    <pre class="bg-light border rounded p-3 mb-0 section-pre">${not empty problem.inputFormat ? fn:trim(problem.inputFormat) : 'Not specified.'}</pre>
                                 </section>
-
                                 <section class="mb-4">
                                     <h2 class="h6 fw-semibold">Output Format</h2>
-                                    <c:choose>
-                                        <c:when test="${not empty problem.outputFormat}">
-                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">${fn:trim(problem.outputFormat)}</pre>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">Not specified.</pre>
-                                        </c:otherwise>
-                                    </c:choose>
+                                    <pre class="bg-light border rounded p-3 mb-0 section-pre">${not empty problem.outputFormat ? fn:trim(problem.outputFormat) : 'Not specified.'}</pre>
                                 </section>
-
                                 <section class="mb-4">
                                     <h2 class="h6 fw-semibold">Constraints</h2>
-                                    <c:choose>
-                                        <c:when test="${not empty problem.constraints}">
-                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">${fn:trim(problem.constraints)}</pre>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">Not specified.</pre>
-                                        </c:otherwise>
-                                    </c:choose>
+                                    <pre class="bg-light border rounded p-3 mb-0 section-pre">${not empty problem.constraints ? fn:trim(problem.constraints) : 'Not specified.'}</pre>
                                 </section>
-
                                 <section>
                                     <h2 class="h5 fw-semibold mb-3">Sample Test Cases</h2>
                                     <c:choose>
@@ -91,14 +99,10 @@
                                                     <div class="col-12">
                                                         <div class="border rounded-3 p-3 bg-white">
                                                             <h3 class="h6 fw-bold mb-3">Sample ${status.index + 1}</h3>
-                                                            <div class="mb-3">
-                                                                <p class="fw-semibold mb-1">Input</p>
-                                                                <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${testCase.input}</code></pre>
-                                                            </div>
-                                                            <div>
-                                                                <p class="fw-semibold mb-1">Output</p>
-                                                                <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${testCase.expectedOutput}</code></pre>
-                                                            </div>
+                                                            <p class="fw-semibold mb-1">Input</p>
+                                                            <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${testCase.input}</code></pre>
+                                                            <p class="fw-semibold mb-1">Output</p>
+                                                            <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${testCase.expectedOutput}</code></pre>
                                                         </div>
                                                     </div>
                                                 </c:forEach>
@@ -109,8 +113,10 @@
                             </section>
                         </div>
 
-                        <div class="col-12 col-lg-6 editor-column-divider problem-detail-column">
-                            <section class="editor-pane ps-lg-3 d-flex flex-column">
+                        <div class="tab-pane fade ${activeTab == 'run' ? 'show active' : ''}"
+                             id="run-pane"
+                             role="tabpanel">
+                            <section class="editor-pane d-flex flex-column">
                                 <form method="post" action="${pageContext.request.contextPath}/submit" class="d-flex flex-column h-100">
                                     <input type="hidden" name="problemId" value="${problem.id}">
 
@@ -185,6 +191,81 @@
                                         </div>
                                     </div>
                                 </div>
+                            </section>
+                        </div>
+
+                        <div class="tab-pane fade ${activeTab == 'submissions' ? 'show active' : ''}"
+                             id="submissions-pane"
+                             role="tabpanel">
+                            <section>
+                                <div class="d-flex justify-content-between align-items-center mb-3">
+                                    <h2 class="h5 fw-semibold mb-0">Your Submission History</h2>
+                                    <a class="btn btn-outline-primary btn-sm"
+                                       href="${pageContext.request.contextPath}/submissions?problemId=${problem.id}">
+                                        Refresh
+                                    </a>
+                                </div>
+                                <c:choose>
+                                    <c:when test="${empty submissions}">
+                                        <div class="alert alert-secondary mb-0">No submissions yet for this problem.</div>
+                                    </c:when>
+                                    <c:otherwise>
+                                        <div class="table-responsive">
+                                            <table class="table table-striped align-middle">
+                                                <thead class="table-light">
+                                                <tr>
+                                                    <th>Status</th>
+                                                    <th>Language</th>
+                                                    <th>Execution Time</th>
+                                                    <th>Submitted At</th>
+                                                    <th class="text-end">Action</th>
+                                                </tr>
+                                                </thead>
+                                                <tbody>
+                                                <c:forEach var="submissionItem" items="${submissions}">
+                                                    <tr>
+                                                        <td><span class="badge text-bg-secondary">${submissionItem.status}</span></td>
+                                                        <td>${submissionItem.language}</td>
+                                                        <td>${empty submissionItem.executionTime ? '-' : submissionItem.executionTime} ms</td>
+                                                        <td>${submissionItem.createdAt}</td>
+                                                        <td class="text-end">
+                                                            <button type="button"
+                                                                    class="btn btn-sm btn-outline-primary"
+                                                                    data-bs-toggle="modal"
+                                                                    data-bs-target="#submissionModal-${submissionItem.id}">
+                                                                View
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                </c:forEach>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                        <c:forEach var="submissionItem" items="${submissions}">
+                                            <div class="modal fade" id="submissionModal-${submissionItem.id}" tabindex="-1" aria-hidden="true">
+                                                <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title">Submission #${submissionItem.id}</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            <p class="mb-2"><strong>Status:</strong> ${submissionItem.status}</p>
+                                                            <p class="mb-2"><strong>Language:</strong> ${submissionItem.language}</p>
+                                                            <p class="mb-2"><strong>Execution Time:</strong> ${empty submissionItem.executionTime ? '-' : submissionItem.executionTime} ms</p>
+                                                            <p class="mb-1"><strong>Code:</strong></p>
+                                                            <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${submissionItem.code}</code></pre>
+                                                            <p class="mb-1"><strong>Output:</strong></p>
+                                                            <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${empty submissionItem.output ? '-' : submissionItem.output}</code></pre>
+                                                            <p class="mb-1"><strong>Error:</strong></p>
+                                                            <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${empty submissionItem.errorMessage ? '-' : submissionItem.errorMessage}</code></pre>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </c:forEach>
+                                    </c:otherwise>
+                                </c:choose>
                             </section>
                         </div>
                     </div>

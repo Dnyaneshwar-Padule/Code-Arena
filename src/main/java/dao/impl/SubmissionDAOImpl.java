@@ -7,6 +7,7 @@ import org.hibernate.Session;
 import org.hibernate.Transaction;
 import util.HibernateUtil;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -58,6 +59,22 @@ public class SubmissionDAOImpl implements SubmissionDAO {
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Error fetching submission by id", ex);
             throw new DaoException("Error fetching submission by id", ex);
+        }
+    }
+
+    @Override
+    public List<Submission> getByUserAndProblem(Long userId, Long problemId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            return session.createQuery(
+                            "from Submission s where s.user.id = :userId and s.problem.id = :problemId order by s.createdAt desc",
+                            Submission.class
+                    )
+                    .setParameter("userId", userId)
+                    .setParameter("problemId", problemId)
+                    .list();
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error fetching submissions by user and problem", ex);
+            throw new DaoException("Error fetching submissions by user and problem", ex);
         }
     }
 }

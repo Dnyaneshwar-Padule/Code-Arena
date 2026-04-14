@@ -19,8 +19,9 @@ import service.impl.TestCaseServiceImpl;
 import util.ErrorHandlerUtil;
 
 import java.io.IOException;
+import java.util.List;
 
-@WebServlet(name = "SubmissionServlet", urlPatterns = "/submit")
+@WebServlet(name = "SubmissionServlet", urlPatterns = {"/submit", "/submissions"})
 public class SubmissionServlet extends HttpServlet {
 
     private transient SubmissionService submissionService;
@@ -58,6 +59,8 @@ public class SubmissionServlet extends HttpServlet {
             request.setAttribute("submissionOutput", submission.getOutput());
             request.setAttribute("submissionError", submission.getErrorMessage());
             request.setAttribute("submissionExecutionTime", submission.getExecutionTime());
+            request.setAttribute("submissions", submissionService.getUserSubmissions(problemId, loggedInUser.getId()));
+            request.setAttribute("activeTab", "run");
             request.getRequestDispatcher("/jsp/problem-detail.jsp").forward(request, response);
         } catch (ServiceException ex) {
             if (problemId != null) {
@@ -85,14 +88,46 @@ public class SubmissionServlet extends HttpServlet {
     }
 
     @Override
-    protected void doGet(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        response.sendRedirect(request.getContextPath() + "/problems");
+    protected void doGet(HttpServletRequest request, HttpServletResponse response)
+            throws ServletException, IOException {
+        User loggedInUser = getLoggedInUser(request);
+        if (loggedInUser == null) {
+            response.sendRedirect(request.getContextPath() + "/login");
+            return;
+        }
+
+        Long problemId = null;
+        try {
+            problemId = parseLong(getTrimmedParameter(request, "problemId"));
+            Problem problem = problemService.getProblemById(problemId);
+            List<Submission> submissions = submissionService.getUserSubmissions(problemId, loggedInUser.getId());
+            request.setAttribute("problem", problem);
+            request.setAttribute("sampleTestCases", testCaseService.getSampleByProblemId(problemId));
+            request.setAttribute("submissions", submissions);
+            request.setAttribute("activeTab", "submissions");
+            request.getRequestDispatcher("/jsp/problem-detail.jsp").forward(request, response);
+        } catch (Exception ex) {
+            if (problemId != null) {
+                attachProblemContext(request, problemId);
+            }
+            ErrorHandlerUtil.handleException(
+                    request,
+                    response,
+                    ex,
+                    "Unable to load submission history right now.",
+                    "/jsp/problem-detail.jsp"
+            );
+        }
     }
 
     private void attachProblemContext(HttpServletRequest request, Long problemId) {
         try {
             request.setAttribute("problem", problemService.getProblemById(problemId));
             request.setAttribute("sampleTestCases", testCaseService.getSampleByProblemId(problemId));
+            User loggedInUser = getLoggedInUser(request);
+            if (loggedInUser != null) {
+                request.setAttribute("submissions", submissionService.getUserSubmissions(problemId, loggedInUser.getId()));
+            }
         } catch (Exception ignored) {
             // Keep error path resilient if context lookup fails.
         }

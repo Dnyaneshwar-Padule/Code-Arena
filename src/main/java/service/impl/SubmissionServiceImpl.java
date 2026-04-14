@@ -18,6 +18,7 @@ import model.User;
 import service.JudgeService;
 import service.SubmissionService;
 
+import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -81,6 +82,22 @@ public class SubmissionServiceImpl implements SubmissionService {
         } catch (Exception ex) {
             LOGGER.log(Level.SEVERE, "Unexpected submission workflow error", ex);
             throw new ServiceException("Unable to process submission right now.", ex);
+        }
+    }
+
+    @Override
+    public List<Submission> getUserSubmissions(Long problemId, Long userId) {
+        if (problemId == null || problemId <= 0) {
+            throw new ValidationException("Invalid problem id.");
+        }
+        if (userId == null || userId <= 0) {
+            throw new ValidationException("Invalid user id.");
+        }
+        try {
+            return submissionDAO.getByUserAndProblem(userId, problemId);
+        } catch (DaoException ex) {
+            LOGGER.log(Level.SEVERE, "Failed to fetch user submissions", ex);
+            throw new ServiceException("Unable to load submissions right now.", ex);
         }
     }
 

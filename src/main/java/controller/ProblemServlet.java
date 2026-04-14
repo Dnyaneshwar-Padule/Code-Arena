@@ -8,9 +8,12 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Problem;
+import model.User;
 import service.TestCaseService;
+import service.SubmissionService;
 import service.ProblemService;
 import service.impl.ProblemServiceImpl;
+import service.impl.SubmissionServiceImpl;
 import service.impl.TestCaseServiceImpl;
 import util.ErrorHandlerUtil;
 
@@ -22,11 +25,13 @@ public class ProblemServlet extends HttpServlet {
 
     private transient ProblemService problemService;
     private transient TestCaseService testCaseService;
+    private transient SubmissionService submissionService;
 
     @Override
     public void init() throws ServletException {
         this.problemService = new ProblemServiceImpl();
         this.testCaseService = new TestCaseServiceImpl();
+        this.submissionService = new SubmissionServiceImpl();
     }
 
     @Override
@@ -92,6 +97,10 @@ public class ProblemServlet extends HttpServlet {
             Problem problem = problemService.getProblemById(id);
             request.setAttribute("problem", problem);
             request.setAttribute("sampleTestCases", testCaseService.getSampleByProblemId(id));
+            User loggedInUser = getLoggedInUser(request);
+            if (loggedInUser != null) {
+                request.setAttribute("submissions", submissionService.getUserSubmissions(id, loggedInUser.getId()));
+            }
             request.getRequestDispatcher("/jsp/problem-detail.jsp").forward(request, response);
         } catch (ValidationException ex) {
             ErrorHandlerUtil.handleException(
@@ -143,5 +152,16 @@ public class ProblemServlet extends HttpServlet {
         } catch (NumberFormatException ex) {
             return defaultValue;
         }
+    }
+
+    private User getLoggedInUser(HttpServletRequest request) {
+        if (request.getSession(false) == null) {
+            return null;
+        }
+        Object value = request.getSession(false).getAttribute("loggedInUser");
+        if (!(value instanceof User)) {
+            return null;
+        }
+        return (User) value;
     }
 }
