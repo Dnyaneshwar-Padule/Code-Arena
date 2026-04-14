@@ -146,9 +146,14 @@
                                         <input type="hidden" id="code" name="code">
                                     </div>
 
+                                    <div class="mb-3">
+                                        <label for="customInput" class="form-label fw-semibold">Custom Input (optional)</label>
+                                        <textarea id="customInput" class="form-control" rows="4" placeholder="Provide stdin for Run. Use empty input or NA for no input."></textarea>
+                                    </div>
+
                                     <div class="d-flex gap-2 mt-auto">
-                                        <button type="submit" name="action" value="run" class="btn btn-outline-secondary">Run</button>
-                                        <button type="submit" name="action" value="submit" class="btn btn-primary">Submit</button>
+                                        <button type="button" id="runButton" class="btn btn-outline-secondary">Run</button>
+                                        <button type="submit" id="submitButton" name="action" value="submit" class="btn btn-primary">Submit</button>
                                     </div>
                                 </form>
 
@@ -157,48 +162,27 @@
                                         <h2 class="h6 fw-semibold mb-3">Output / Result</h2>
                                         <div class="d-flex align-items-center gap-2 mb-3">
                                             <strong class="mb-0">Status:</strong>
-                                            <c:choose>
-                                                <c:when test="${empty submissionStatus}">
-                                                    <span class="badge text-bg-secondary">-</span>
-                                                </c:when>
-                                                <c:when test="${submissionStatus == 'ACCEPTED'}">
-                                                    <span class="badge text-bg-success">ACCEPTED</span>
-                                                </c:when>
-                                                <c:when test="${submissionStatus == 'WRONG'}">
-                                                    <span class="badge text-bg-danger">WRONG</span>
-                                                </c:when>
-                                                <c:when test="${submissionStatus == 'TIME_LIMIT_EXCEEDED'}">
-                                                    <span class="badge text-bg-warning">TIME_LIMIT_EXCEEDED</span>
-                                                </c:when>
-                                                <c:when test="${submissionStatus == 'MEMORY_LIMIT_EXCEEDED'}">
-                                                    <span class="badge text-bg-warning">MEMORY_LIMIT_EXCEEDED</span>
-                                                </c:when>
-                                                <c:when test="${submissionStatus == 'RUNTIME_ERROR'}">
-                                                    <span class="badge text-bg-danger">RUNTIME_ERROR</span>
-                                                </c:when>
-                                                <c:when test="${submissionStatus == 'COMPILATION_ERROR'}">
-                                                    <span class="badge text-bg-dark">COMPILATION_ERROR</span>
-                                                </c:when>
-                                                <c:when test="${submissionStatus == 'OUTPUT_LIMIT_EXCEEDED'}">
-                                                    <span class="badge text-bg-warning">OUTPUT_LIMIT_EXCEEDED</span>
-                                                </c:when>
-                                                <c:otherwise>
-                                                    <span class="badge text-bg-secondary">${submissionStatus}</span>
-                                                </c:otherwise>
-                                            </c:choose>
+                                            <span id="resultStatusBadge" class="badge text-bg-secondary">${empty submissionStatus ? '-' : submissionStatus}</span>
                                         </div>
 
-                                        <p class="mb-2"><strong>Execution Time:</strong> ${empty submissionExecutionTime ? '-' : submissionExecutionTime} ms</p>
+                                        <p class="mb-2"><strong>Execution Time:</strong> <span id="resultExecutionTime">${empty submissionExecutionTime ? '-' : submissionExecutionTime}</span> ms</p>
+                                        <p class="mb-2"><strong>Passed:</strong> <span id="resultPassedCount">-</span>/<span id="resultTotalCount">-</span></p>
 
-                                        <c:if test="${not empty submissionOutput}">
-                                            <p class="mb-2"><strong>Output:</strong></p>
-                                            <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${submissionOutput}</code></pre>
-                                        </c:if>
+                                        <p class="mb-2"><strong>Output:</strong></p>
+                                        <pre class="bg-light border rounded p-3 mb-3 section-pre"><code id="resultOutput">${empty submissionOutput ? '' : submissionOutput}</code></pre>
 
-                                        <c:if test="${not empty submissionError}">
-                                            <p class="mb-2"><strong>Error:</strong></p>
-                                            <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${submissionError}</code></pre>
-                                        </c:if>
+                                        <p class="mb-2"><strong>Error:</strong></p>
+                                        <pre class="bg-light border rounded p-3 mb-0 section-pre"><code id="resultError">${empty submissionError ? '' : submissionError}</code></pre>
+
+                                        <div id="failedCaseContainer" class="mt-3 d-none">
+                                            <h3 class="h6 fw-semibold mb-2">First Failed Sample Test Case</h3>
+                                            <p class="mb-1"><strong>Input:</strong></p>
+                                            <pre class="bg-light border rounded p-2 mb-2 section-pre"><code id="failedInput"></code></pre>
+                                            <p class="mb-1"><strong>Expected Output:</strong></p>
+                                            <pre class="bg-light border rounded p-2 mb-2 section-pre"><code id="failedExpectedOutput"></code></pre>
+                                            <p class="mb-1"><strong>Actual Output:</strong></p>
+                                            <pre class="bg-light border rounded p-2 mb-0 section-pre"><code id="failedActualOutput"></code></pre>
+                                        </div>
                                     </div>
                                 </div>
                             </section>
@@ -218,7 +202,26 @@
         const editorContainer = document.getElementById('editor');
         const submitForm = document.querySelector('form[action$="/submit"]');
         const themeToggleButton = document.getElementById('editorThemeToggle');
-        if (!languageSelect || !codeInput || !editorContainer || !submitForm || !themeToggleButton || typeof require === 'undefined') {
+        const runButton = document.getElementById('runButton');
+        const submitButton = document.getElementById('submitButton');
+        const customInput = document.getElementById('customInput');
+        const resultStatusBadge = document.getElementById('resultStatusBadge');
+        const resultExecutionTime = document.getElementById('resultExecutionTime');
+        const resultOutput = document.getElementById('resultOutput');
+        const resultError = document.getElementById('resultError');
+        const resultPassedCount = document.getElementById('resultPassedCount');
+        const resultTotalCount = document.getElementById('resultTotalCount');
+        const failedCaseContainer = document.getElementById('failedCaseContainer');
+        const failedInput = document.getElementById('failedInput');
+        const failedExpectedOutput = document.getElementById('failedExpectedOutput');
+        const failedActualOutput = document.getElementById('failedActualOutput');
+        const problemIdInput = submitForm.querySelector('input[name="problemId"]');
+        if (!languageSelect || !codeInput || !editorContainer || !submitForm || !themeToggleButton
+                || !runButton || !submitButton || !customInput
+                || !resultStatusBadge || !resultExecutionTime || !resultOutput || !resultError
+                || !resultPassedCount || !resultTotalCount || !failedCaseContainer
+                || !failedInput || !failedExpectedOutput || !failedActualOutput || !problemIdInput
+                || typeof require === 'undefined') {
             return;
         }
 
@@ -333,6 +336,10 @@ if __name__ == "__main__":
 
             submitForm.addEventListener('submit', function () {
                 codeInput.value = editor.getValue();
+                lockButtons('Submitting...', true);
+                window.setTimeout(function () {
+                    unlockButtons();
+                }, 15000);
             });
 
             themeToggleButton.addEventListener('click', function () {
@@ -340,6 +347,107 @@ if __name__ == "__main__":
                 monaco.editor.setTheme(isDarkTheme ? 'vs-dark' : 'vs');
                 themeToggleButton.textContent = isDarkTheme ? 'Light Mode' : 'Dark Mode';
             });
+
+            runButton.addEventListener('click', async function () {
+                const code = editor.getValue();
+                const language = languageSelect.value;
+                const input = customInput.value;
+                lockButtons('Running...', false);
+                try {
+                    const body = new URLSearchParams();
+                    body.set('code', code);
+                    body.set('language', language);
+                    body.set('input', input);
+                    body.set('problemId', problemIdInput.value);
+
+                    const response = await fetch('${pageContext.request.contextPath}/run', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                        },
+                        body: body.toString()
+                    });
+                    const payload = await response.json();
+                    if (!response.ok) {
+                        throw new Error(payload.error || 'Unable to run code right now.');
+                    }
+                    applyResult(payload);
+                } catch (error) {
+                    applyResult({
+                        status: 'ERROR',
+                        output: '',
+                        error: error.message || 'Unable to run code right now.',
+                        executionTime: '-',
+                        passedCount: 0,
+                        totalCount: 0
+                    });
+                } finally {
+                    unlockButtons();
+                }
+            });
+        });
+
+        function lockButtons(primaryText, submitting) {
+            runButton.disabled = true;
+            submitButton.disabled = true;
+            runButton.textContent = submitting ? 'Run' : primaryText;
+            submitButton.textContent = submitting ? primaryText : 'Submit';
+        }
+
+        function unlockButtons() {
+            runButton.disabled = false;
+            submitButton.disabled = false;
+            runButton.textContent = 'Run';
+            submitButton.textContent = 'Submit';
+        }
+
+        function applyResult(payload) {
+            const status = payload.status || '-';
+            const badgeClass = badgeClassForStatus(status);
+            resultStatusBadge.className = 'badge ' + badgeClass;
+            resultStatusBadge.textContent = status;
+            resultOutput.textContent = payload.output || '';
+            resultError.textContent = payload.error || '';
+            resultExecutionTime.textContent = payload.executionTime === undefined || payload.executionTime === null ? '-' : payload.executionTime;
+            resultPassedCount.textContent = payload.passedCount === undefined || payload.passedCount === null ? '-' : payload.passedCount;
+            resultTotalCount.textContent = payload.totalCount === undefined || payload.totalCount === null ? '-' : payload.totalCount;
+
+            const hasFailedCase = !!(payload.failedInput || payload.failedExpectedOutput || payload.failedActualOutput);
+            if (hasFailedCase) {
+                failedCaseContainer.classList.remove('d-none');
+                failedInput.textContent = payload.failedInput || '';
+                failedExpectedOutput.textContent = payload.failedExpectedOutput || '';
+                failedActualOutput.textContent = payload.failedActualOutput || '';
+            } else {
+                failedCaseContainer.classList.add('d-none');
+                failedInput.textContent = '';
+                failedExpectedOutput.textContent = '';
+                failedActualOutput.textContent = '';
+            }
+        }
+
+        function badgeClassForStatus(status) {
+            switch (status) {
+                case 'ACCEPTED':
+                    return 'text-bg-success';
+                case 'WRONG':
+                    return 'text-bg-danger';
+                case 'TLE':
+                    return 'text-bg-warning';
+                case 'ERROR':
+                    return 'text-bg-dark';
+                default:
+                    return 'text-bg-secondary';
+            }
+        }
+
+        applyResult({
+            status: resultStatusBadge.textContent.trim(),
+            output: resultOutput.textContent,
+            error: resultError.textContent,
+            executionTime: resultExecutionTime.textContent.trim(),
+            passedCount: resultPassedCount.textContent.trim(),
+            totalCount: resultTotalCount.textContent.trim()
         });
     })();
 </script>
