@@ -13,9 +13,11 @@ import service.SubmissionService;
 import service.impl.SubmissionServiceImpl;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 
-@WebServlet(name = "SubmissionServlet", urlPatterns = {"/submit", "/submissions"})
+@WebServlet(name = "SubmissionServlet", urlPatterns = {"/submit", "/submissions", "/submission"})
 public class SubmissionServlet extends HttpServlet {
 
     private transient SubmissionService submissionService;
@@ -74,6 +76,14 @@ public class SubmissionServlet extends HttpServlet {
         }
 
         try {
+            String servletPath = request.getServletPath();
+            if ("/submission".equals(servletPath)) {
+                Long submissionId = parseLong(getTrimmedParameter(request, "id"));
+                Submission submission = submissionService.getUserSubmissionById(submissionId, loggedInUser.getId());
+                writeJson(response, buildSubmissionDetailJson(submission));
+                return;
+            }
+
             Long problemId = parseLong(getTrimmedParameter(request, "problemId"));
             List<Submission> submissions = submissionService.getUserSubmissions(problemId, loggedInUser.getId());
             writeJson(response, buildSubmissionsJson(submissions));
@@ -152,10 +162,30 @@ public class SubmissionServlet extends HttpServlet {
                     .append("\"status\":\"").append(escapeJson(String.valueOf(submission.getStatus()))).append("\",")
                     .append("\"language\":\"").append(escapeJson(submission.getLanguage())).append("\",")
                     .append("\"executionTime\":").append(safeNumber(submission.getExecutionTime())).append(",")
-                    .append("\"createdAt\":\"").append(escapeJson(String.valueOf(submission.getCreatedAt()))).append("\"")
+                    .append("\"createdAt\":\"").append(escapeJson(formatDateTime(submission.getCreatedAt()))).append("\"")
                     .append("}");
         }
         jsonBuilder.append("]}");
         return jsonBuilder.toString();
+    }
+
+    private String buildSubmissionDetailJson(Submission submission) {
+        return "{"
+                + "\"id\":" + safeNumber(submission.getId()) + ","
+                + "\"status\":\"" + escapeJson(String.valueOf(submission.getStatus())) + "\","
+                + "\"language\":\"" + escapeJson(submission.getLanguage()) + "\","
+                + "\"executionTime\":" + safeNumber(submission.getExecutionTime()) + ","
+                + "\"createdAt\":\"" + escapeJson(formatDateTime(submission.getCreatedAt())) + "\","
+                + "\"code\":\"" + escapeJson(submission.getCode()) + "\","
+                + "\"output\":\"" + escapeJson(submission.getOutput()) + "\","
+                + "\"error\":\"" + escapeJson(submission.getErrorMessage()) + "\""
+                + "}";
+    }
+
+    private String formatDateTime(LocalDateTime value) {
+        if (value == null) {
+            return "-";
+        }
+        return value.format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
     }
 }

@@ -108,6 +108,33 @@ public class SubmissionServiceImpl implements SubmissionService {
         }
     }
 
+    @Override
+    public Submission getUserSubmissionById(Long submissionId, Long userId) {
+        if (submissionId == null || submissionId <= 0) {
+            throw new ValidationException("Invalid submission id.");
+        }
+        if (userId == null || userId <= 0) {
+            throw new ValidationException("Invalid user id.");
+        }
+        try {
+            Submission submission = submissionDAO.getSubmissionById(submissionId);
+            if (submission == null) {
+                throw new ValidationException("Submission not found.");
+            }
+            if (submission.getUser() == null
+                    || submission.getUser().getId() == null
+                    || !submission.getUser().getId().equals(userId)) {
+                throw new ValidationException("Submission not found.");
+            }
+            return submission;
+        } catch (ValidationException ex) {
+            throw ex;
+        } catch (DaoException ex) {
+            LOGGER.log(Level.SEVERE, "Failed to fetch submission details", ex);
+            throw new ServiceException("Unable to load submission details right now.", ex);
+        }
+    }
+
     private void validateInput(Long userId, Long problemId, String code, String language) {
         if (userId == null || userId <= 0) {
             throw new ValidationException("Invalid user id.");

@@ -108,87 +108,8 @@
                                 <div class="tab-pane fade ${activeTab == 'submissions' ? 'show active' : ''}"
                                      id="submissions-pane"
                                      role="tabpanel">
-                                    <section class="pe-lg-3">
-                                        <div class="d-flex justify-content-between align-items-center mb-3">
-                                            <h2 class="h5 fw-semibold mb-0">Your Submission History</h2>
-                                            <a class="btn btn-outline-primary btn-sm"
-                                               href="${pageContext.request.contextPath}/submissions?problemId=${problem.id}">
-                                                Refresh
-                                            </a>
-                                        </div>
-                                        <c:choose>
-                                            <c:when test="${empty submissions}">
-                                                <div class="alert alert-secondary mb-0">No submissions yet for this problem.</div>
-                                            </c:when>
-                                            <c:otherwise>
-                                                <div class="table-responsive">
-                                                    <table class="table table-striped align-middle">
-                                                        <thead class="table-light">
-                                                        <tr>
-                                                            <th>Status</th>
-                                                            <th>Language</th>
-                                                            <th>Execution Time</th>
-                                                            <th>Passed</th>
-                                                            <th>Submitted At</th>
-                                                            <th class="text-end">Action</th>
-                                                        </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                        <c:forEach var="submissionItem" items="${submissions}">
-                                                            <tr>
-                                                                <td>
-                                                                    <span class="badge ${submissionItem.status == 'ACCEPTED' ? 'text-bg-success'
-                                                                            : submissionItem.status == 'WRONG' ? 'text-bg-danger'
-                                                                            : submissionItem.status == 'TIME_LIMIT_EXCEEDED' ? 'text-bg-warning'
-                                                                            : submissionItem.status == 'RUNTIME_ERROR' ? 'text-bg-danger'
-                                                                            : submissionItem.status == 'COMPILATION_ERROR' ? 'text-bg-dark'
-                                                                            : submissionItem.status == 'PENDING' ? 'text-bg-info'
-                                                                            : 'text-bg-secondary'}">${submissionItem.status}</span>
-                                                                </td>
-                                                                <td>${submissionItem.language}</td>
-                                                                <td>${empty submissionItem.executionTime ? '-' : submissionItem.executionTime} ms</td>
-                                                                <td>${empty submissionItem.passedCount ? '-' : submissionItem.passedCount}/${empty submissionItem.totalCount ? '-' : submissionItem.totalCount}</td>
-                                                                <td>${submissionItem.createdAt}</td>
-                                                                <td class="text-end">
-                                                                    <button type="button"
-                                                                            class="btn btn-sm btn-outline-primary"
-                                                                            data-bs-toggle="modal"
-                                                                            data-bs-target="#submissionModal-${submissionItem.id}">
-                                                                        View
-                                                                    </button>
-                                                                </td>
-                                                            </tr>
-                                                        </c:forEach>
-                                                        </tbody>
-                                                    </table>
-                                                </div>
-                                                <c:forEach var="submissionItem" items="${submissions}">
-                                                    <div class="modal fade" id="submissionModal-${submissionItem.id}" tabindex="-1" aria-hidden="true">
-                                                        <div class="modal-dialog modal-lg modal-dialog-scrollable">
-                                                            <div class="modal-content">
-                                                                <div class="modal-header">
-                                                                    <h5 class="modal-title">Submission #${submissionItem.id}</h5>
-                                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                                </div>
-                                                                <div class="modal-body">
-                                                                    <p class="mb-2"><strong>Status:</strong> ${submissionItem.status}</p>
-                                                                    <p class="mb-2"><strong>Language:</strong> ${submissionItem.language}</p>
-                                                                    <p class="mb-2"><strong>Execution Time:</strong> ${empty submissionItem.executionTime ? '-' : submissionItem.executionTime} ms</p>
-                                                                    <p class="mb-2"><strong>Passed:</strong> ${empty submissionItem.passedCount ? '-' : submissionItem.passedCount}/${empty submissionItem.totalCount ? '-' : submissionItem.totalCount}</p>
-                                                                    <p class="mb-1"><strong>Code:</strong></p>
-                                                                    <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${submissionItem.code}</code></pre>
-                                                                    <p class="mb-1"><strong>Output:</strong></p>
-                                                                    <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${empty submissionItem.output ? '-' : submissionItem.output}</code></pre>
-                                                                    <p class="mb-1"><strong>Error:</strong></p>
-                                                                    <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${empty submissionItem.errorMessage ? '-' : submissionItem.errorMessage}</code></pre>
-                                                                </div>
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </c:forEach>
-                                            </c:otherwise>
-                                        </c:choose>
-                                    </section>
+                                    <%@ include file="components/submission-table.jsp" %>
+                                    <%@ include file="components/submission-details.jsp" %>
                                 </div>
                             </div>
                         </div>
@@ -278,7 +199,48 @@
     </section>
 </main>
 
+<style>
+    .submission-split-top {
+        min-height: 260px;
+        max-height: 320px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .submission-table-wrap {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: auto;
+        border: 1px solid var(--bs-border-color);
+        border-radius: 0.5rem;
+        background-color: #fff;
+    }
+
+    .submission-split-bottom {
+        min-height: 260px;
+        max-height: 340px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .submission-details-body {
+        overflow-y: auto;
+        overflow-x: auto;
+        max-height: 280px;
+    }
+
+    .submission-pre {
+        overflow-x: auto;
+        white-space: pre;
+    }
+
+    .submission-row {
+        cursor: pointer;
+    }
+</style>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
+<script src="${pageContext.request.contextPath}/static/js/submissions.js"></script>
 <script>
     (function () {
         const languageSelect = document.getElementById('language');
@@ -314,6 +276,13 @@
                 || typeof require === 'undefined') {
             return;
         }
+
+        const submissionsUI = window.SubmissionsUI
+            ? window.SubmissionsUI.init({
+                contextPath: '${pageContext.request.contextPath}',
+                problemId: problemIdInput.value
+            })
+            : null;
 
         const templates = {
             C: `#include <stdio.h>
@@ -448,6 +417,9 @@ if __name__ == "__main__":
                         throw new Error(payload.error || 'Unable to process submission right now.');
                     }
                     applyResult(payload);
+                    if (submissionsUI) {
+                        await submissionsUI.loadSubmissions();
+                    }
                 } catch (error) {
                     applyResult({
                         status: 'ERROR',
@@ -505,6 +477,9 @@ if __name__ == "__main__":
                     unlockButtons();
                 }
             });
+            if (submissionsUI) {
+                submissionsUI.loadSubmissions();
+            }
         });
 
         function lockButtons(primaryText, submitting) {
