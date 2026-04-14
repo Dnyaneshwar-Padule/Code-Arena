@@ -96,6 +96,15 @@ CREATE TABLE IF NOT EXISTS leaderboard (
     CONSTRAINT uq_leaderboard_user_contest UNIQUE (user_id, contest_id)
 );
 
+CREATE TABLE IF NOT EXISTS user_contest_problem (
+    user_id BIGINT NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    contest_id BIGINT NOT NULL REFERENCES contests(id) ON DELETE CASCADE,
+    problem_id BIGINT NOT NULL REFERENCES problems(id) ON DELETE CASCADE,
+    points_awarded INT NOT NULL DEFAULT 0,
+    solved_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT pk_user_contest_problem PRIMARY KEY (user_id, contest_id, problem_id)
+);
+
 -- Foreign-key indexes
 CREATE INDEX IF NOT EXISTS idx_test_cases_problem_id ON test_cases(problem_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_user_id ON submissions(user_id);
@@ -109,3 +118,5 @@ CREATE INDEX IF NOT EXISTS idx_contest_registrations_user_id ON contest_registra
 CREATE INDEX IF NOT EXISTS idx_contest_registrations_contest_id ON contest_registrations(contest_id);
 CREATE INDEX IF NOT EXISTS idx_leaderboard_user_id ON leaderboard(user_id);
 CREATE INDEX IF NOT EXISTS idx_leaderboard_contest_id ON leaderboard(contest_id);
+CREATE INDEX IF NOT EXISTS idx_user_contest_problem_user_contest ON user_contest_problem(user_id, contest_id);
+CREATE INDEX IF NOT EXISTS idx_user_contest_problem_contest_problem ON user_contest_problem(contest_id, problem_id);

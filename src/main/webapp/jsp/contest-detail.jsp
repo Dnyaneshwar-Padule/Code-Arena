@@ -41,16 +41,34 @@
                                         <th>Title</th>
                                         <th>Difficulty</th>
                                         <th>Points</th>
+                                        <th>Status</th>
                                         <th class="text-end">Action</th>
                                     </tr>
                                     </thead>
                                     <tbody>
                                     <c:forEach var="contestProblem" items="${contestProblems}">
+                                        <c:set var="problemStatus" value="${problemStatusMap[contestProblem.problem.id]}"/>
+                                        <c:if test="${empty problemStatus}">
+                                            <c:set var="problemStatus" value="NOT_ATTEMPTED"/>
+                                        </c:if>
                                         <tr>
                                             <td>${contestProblem.order}</td>
                                             <td>${contestProblem.problem.title}</td>
                                             <td>${contestProblem.problem.difficulty}</td>
                                             <td>${contestProblem.points}</td>
+                                            <td>
+                                                <c:choose>
+                                                    <c:when test="${problemStatus == 'SOLVED'}">
+                                                        <span class="badge text-bg-success">SOLVED</span>
+                                                    </c:when>
+                                                    <c:when test="${problemStatus == 'ATTEMPTED'}">
+                                                        <span class="badge text-bg-warning">ATTEMPTED</span>
+                                                    </c:when>
+                                                    <c:otherwise>
+                                                        <span class="badge text-bg-secondary">NOT_ATTEMPTED</span>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </td>
                                             <td class="text-end">
                                                 <a class="btn btn-sm btn-primary"
                                                    href="${pageContext.request.contextPath}/problem?id=${contestProblem.problem.id}&contestId=${contest.id}">

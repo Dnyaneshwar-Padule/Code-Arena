@@ -1,22 +1,31 @@
 package dao.impl;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
+import org.hibernate.Session;
+import org.hibernate.Transaction;
+import org.hibernate.query.Query;
+
 import dao.ContestDAO;
 import exception.DaoException;
 import model.Contest;
 import model.ContestLeaderboardEntry;
 import model.ContestProblem;
+import model.ContestProblemProgressStatus;
 import model.Leaderboard;
 import model.Submission;
 import model.User;
-import org.hibernate.Session;
-import org.hibernate.query.Query;
-import org.hibernate.Transaction;
+import model.UserContestProblem;
+import model.UserContestProblemId;
 import util.HibernateUtil;
-
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ContestDAOImpl implements ContestDAO {
 
@@ -94,21 +103,28 @@ public class ContestDAOImpl implements ContestDAO {
     @Override
     public List<ContestLeaderboardEntry> getLeaderboard(Long contestId) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
-            List<Leaderboard> rows = session.createQuery(
-                            "from Leaderboard l where l.contest.id = :contestId order by l.score desc, l.user.username asc",
-                            Leaderboard.class
+            @SuppressWarnings("unchecked")
+            List<Object[]> rows = session.createNativeQuery(
+                            "select "
+                                    + "row_number() over (order by l.score desc, u.username asc) as rank_position, "
+                                    + "u.id as user_id, "
+                                    + "u.username as username, "
+                                    + "l.score as score "
+                                    + "from leaderboard l "
+                                    + "join users u on u.id = l.user_id "
+                                    + "where l.contest_id = :contestId "
+                                    + "order by l.score desc, u.username asc"
                     )
                     .setParameter("contestId", contestId)
                     .list();
             List<ContestLeaderboardEntry> entries = new ArrayList<>();
-            int rank = 1;
-            for (Leaderboard row : rows) {
-                ContestLeaderboardEntry entry = new ContestLeaderboardEntry(
-                        row.getUser().getId(),
-                        row.getUser().getUsername(),
-                        row.getScore() == null ? 0 : row.getScore()
-                );
-                entry.setRank(rank++);
+            for (Object[] row : rows) {
+                Integer rankValue = row[0] == null ? 0 : ((Number) row[0]).intValue();
+                Long userId = row[1] == null ? null : ((Number) row[1]).longValue();
+                String username = row[2] == null ? "" : String.valueOf(row[2]);
+                Integer scoreValue = row[3] == null ? 0 : ((Number) row[3]).intValue();
+                ContestLeaderboardEntry entry = new ContestLeaderboardEntry(userId, username, scoreValue);
+                entry.setRank(rankValue);
                 entries.add(entry);
             }
             return entries;
@@ -143,6 +159,115 @@ public class ContestDAOImpl implements ContestDAO {
     }
 
     @Override
+    public Map<Long, ContestProblemProgressStatus> getUserProblemStatuses(Long contestId, Long userId) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            List<Long> problemIds = session.createQuery(
+                            "select cp.problem.id from ContestProblem cp where cp.contest.id = :contestId",
+                            Long.class
+                    )
+                    .setParameter("contestId", contestId)
+                    .list();
+
+            Map<Long, ContestProblemProgressStatus> statuses = new HashMap<>();
+            for (Long problemId : problemIds) {
+                statuses.put(problemId, ContestProblemProgressStatus.NOT_ATTEMPTED);
+            }
+
+            if (problemIds.isEmpty()) {
+                return statuses;
+            }
+
+            List<Long> solvedProblemIds = session.createQuery(
+                            "select ucp.problem.id from UserContestProblem ucp "
+                                    + "where ucp.contest.id = :contestId and ucp.user.id = :userId",
+                            Long.class
+                    )
+                    .setParameter("contestId", contestId)
+                    .setParameter("userId", userId)
+                    .list();
+
+            Set<Long> solvedSet = new HashSet<>(solvedProblemIds);
+            for (Long solvedProblemId : solvedSet) {
+                statuses.put(solvedProblemId, ContestProblemProgressStatus.SOLVED);
+            }
+
+            List<Long> attemptedProblemIds = session.createQuery(
+                            "select distinct s.problem.id from Submission s "
+                                    + "where s.contest.id = :contestId and s.user.id = :userId",
+                            Long.class
+                    )
+                    .setParameter("contestId", contestId)
+                    .setParameter("userId", userId)
+                    .list();
+
+            for (Long attemptedProblemId : attemptedProblemIds) {
+                if (!solvedSet.contains(attemptedProblemId)) {
+                    statuses.put(attemptedProblemId, ContestProblemProgressStatus.ATTEMPTED);
+                }
+            }
+            return statuses;
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error fetching contest problem statuses", ex);
+            throw new DaoException("Error fetching contest problem statuses", ex);
+        }
+    }
+
+    @Override
+    public boolean awardFirstSolveAndUpdateLeaderboard(Long contestId, Long userId, Long problemId, int points, LocalDateTime solvedAt) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+
+            UserContestProblemId key = new UserContestProblemId(userId, contestId, problemId);
+            UserContestProblem existing = session.get(UserContestProblem.class, key);
+            if (existing != null) {
+                transaction.commit();
+                return false;
+            }
+
+            UserContestProblem solved = new UserContestProblem();
+            solved.setId(key);
+            solved.setUser(session.getReference(User.class, userId));
+            solved.setContest(session.getReference(Contest.class, contestId));
+            solved.setProblem(session.getReference(model.Problem.class, problemId));
+            solved.setPointsAwarded(Math.max(0, points));
+            solved.setSolvedAt(solvedAt == null ? LocalDateTime.now() : solvedAt);
+            session.persist(solved);
+
+            Leaderboard row = session.createQuery(
+                            "from Leaderboard l where l.contest.id = :contestId and l.user.id = :userId",
+                            Leaderboard.class
+                    )
+                    .setParameter("contestId", contestId)
+                    .setParameter("userId", userId)
+                    .uniqueResult();
+
+            int safePoints = Math.max(0, points);
+            if (row == null) {
+                row = new Leaderboard();
+                row.setContest(session.getReference(Contest.class, contestId));
+                row.setUser(session.getReference(User.class, userId));
+                row.setScore(safePoints);
+                session.persist(row);
+            } else {
+                Integer currentScore = row.getScore();
+                int current = currentScore == null ? 0 : currentScore;
+                row.setScore(Math.max(0, current + safePoints));
+                session.merge(row);
+            }
+
+            transaction.commit();
+            return true;
+        } catch (Exception ex) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            LOGGER.log(Level.SEVERE, "Error awarding contest first-solve score", ex);
+            throw new DaoException("Error awarding contest first-solve score", ex);
+        }
+    }
+
+    @Override
     public void upsertLeaderboardScore(Long contestId, Long userId, int points) {
         Transaction transaction = null;
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
@@ -163,7 +288,8 @@ public class ContestDAOImpl implements ContestDAO {
                 row.setScore(Math.max(0, points));
                 session.persist(row);
             } else {
-                int current = row.getScore() == null ? 0 : row.getScore();
+                Integer currentScore = row.getScore();
+                int current = currentScore == null ? 0 : currentScore;
                 row.setScore(Math.max(0, current + points));
                 session.merge(row);
             }
@@ -229,6 +355,9 @@ public class ContestDAOImpl implements ContestDAO {
             session.createMutationQuery("delete from ContestProblem cp where cp.contest.id = :contestId")
                     .setParameter("contestId", contestId)
                     .executeUpdate();
+            session.createMutationQuery("delete from UserContestProblem ucp where ucp.contest.id = :contestId")
+                .setParameter("contestId", contestId)
+                .executeUpdate();
             session.createMutationQuery("delete from Leaderboard l where l.contest.id = :contestId")
                     .setParameter("contestId", contestId)
                     .executeUpdate();

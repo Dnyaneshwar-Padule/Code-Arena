@@ -1,5 +1,11 @@
 package controller;
 
+import java.io.IOException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
 import exception.ServiceException;
 import exception.ValidationException;
 import jakarta.servlet.ServletException;
@@ -10,15 +16,12 @@ import jakarta.servlet.http.HttpServletResponse;
 import model.Contest;
 import model.ContestLeaderboardEntry;
 import model.ContestProblem;
+import model.ContestProblemProgressStatus;
 import model.ContestState;
+import model.User;
 import service.ContestService;
 import service.impl.ContestServiceImpl;
 import util.ErrorHandlerUtil;
-
-import java.io.IOException;
-import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
 
 @WebServlet(name = "ContestServlet", urlPatterns = {"/contests", "/contest", "/contest/leaderboard"})
 public class ContestServlet extends HttpServlet {
@@ -49,7 +52,7 @@ public class ContestServlet extends HttpServlet {
             List<Contest> contests = contestService.getAllContests();
             request.setAttribute("contests", contests);
             request.getRequestDispatcher("/jsp/contest-list.jsp").forward(request, response);
-        } catch (Exception ex) {
+        } catch (ServiceException ex) {
             ErrorHandlerUtil.handleException(
                     request,
                     response,
@@ -72,8 +75,15 @@ public class ContestServlet extends HttpServlet {
             request.setAttribute("contestProblems", contestProblems);
             request.setAttribute("contestState", state);
             request.setAttribute("remainingSeconds", remainingSeconds);
+
+            User loggedInUser = getLoggedInUser(request);
+            if (loggedInUser != null) {
+                Map<Long, ContestProblemProgressStatus> problemStatuses =
+                        contestService.getUserProblemStatuses(contestId, loggedInUser.getId());
+                request.setAttribute("problemStatusMap", problemStatuses);
+            }
             request.getRequestDispatcher("/jsp/contest-detail.jsp").forward(request, response);
-        } catch (Exception ex) {
+        } catch (ServiceException ex) {
             ErrorHandlerUtil.handleException(
                     request,
                     response,
@@ -89,19 +99,24 @@ public class ContestServlet extends HttpServlet {
             Long contestId = parseLong(request.getParameter("contestId"), "Invalid contest id.");
             Contest contest = contestService.getContestById(contestId);
             List<ContestLeaderboardEntry> entries = contestService.getLeaderboard(contestId);
+            ContestLeaderboardEntry currentUserEntry = null;
+            User loggedInUser = getLoggedInUser(request);
+            if (loggedInUser != null && !entries.isEmpty()) {
+                for (int i = 0; i < entries.size(); i++) {
+                    ContestLeaderboardEntry entry = entries.get(i);
+                    if (entry.getUserId() != null && entry.getUserId().equals(loggedInUser.getId())) {
+                        currentUserEntry = entry;
+                        entries.remove(i);
+                        break;
+                    }
+                }
+            }
 
             request.setAttribute("contest", contest);
+            request.setAttribute("currentUserEntry", currentUserEntry);
             request.setAttribute("leaderboardEntries", entries);
             request.getRequestDispatcher("/jsp/contest-leaderboard.jsp").forward(request, response);
-        } catch ( ServiceException ex) {
-            ErrorHandlerUtil.handleException(
-                    request,
-                    response,
-                    ex,
-                    "Unable to load leaderboard right now.",
-                    "/jsp/contest-list.jsp"
-            );
-        } catch (Exception ex) {
+        } catch (ServiceException ex) {
             ErrorHandlerUtil.handleException(
                     request,
                     response,
@@ -132,5 +147,16 @@ public class ContestServlet extends HttpServlet {
             return Math.max(0, Duration.between(LocalDateTime.now(), contest.getEndTime()).getSeconds());
         }
         return 0;
+    }
+
+    private User getLoggedInUser(HttpServletRequest request) {
+        if (request.getSession(false) == null) {
+            return null;
+        }
+        Object value = request.getSession(false).getAttribute("loggedInUser");
+        if (!(value instanceof User)) {
+            return null;
+        }
+        return (User) value;
     }
 }

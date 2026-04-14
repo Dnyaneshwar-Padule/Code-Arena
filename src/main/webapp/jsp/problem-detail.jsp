@@ -112,7 +112,7 @@
                                         <div class="submission-history">
                                             <%@ include file="components/submission-table.jsp" %>
                                         </div>
-                                        <div class="submission-details">
+                                        <div class="submission-details mt-2">
                                             <%@ include file="components/submission-details.jsp" %>
                                         </div>
                                     </div>
@@ -214,45 +214,62 @@
     .tab-content {
         display: flex;
         flex-direction: column;
+        min-height: 0;
     }
 
     #problem-pane,
     #submissions-pane {
         flex-grow: 1;
+        min-height: 0;
     }
 
     #submissions-pane.show.active {
         display: flex;
         flex-direction: column;
+        min-height: 0;
     }
 
     .submission-container {
         display: flex;
         flex-direction: column;
         flex-grow: 1;
-    }
-
-    .submission-history,
-    .submission-details {
-        flex-grow: 1;
+        height: 100%;
+        overflow: hidden;
+        min-height: 0;
     }
 
     .submission-history {
-        overflow: auto;
+        flex: 0 0 50%;
+        max-height: 50%;
+        min-height: 0;
+        overflow: hidden;
+        display: flex;
+        flex-direction: column;
     }
 
     .submission-details {
+        flex: 0 0 50%;
+        max-height: 50%;
+        min-height: 0;
         overflow: auto;
+        display: flex;
+        flex-direction: column;
     }
 
     .submission-split-top {
         display: flex;
         flex-direction: column;
+        flex: 1;
+        height: 100%;
+        min-height: 0;
+        overflow: hidden;
     }
 
     .submission-table-wrap {
-        flex: 1;
-        overflow-y: auto;
+        flex: 1 1 auto;
+        height: 0;
+        min-height: 0;
+        overflow-y: auto !important;
         overflow-x: auto;
         border: 1px solid var(--bs-border-color);
         border-radius: 0.5rem;
@@ -262,6 +279,9 @@
     .submission-split-bottom {
         display: flex;
         flex-direction: column;
+        flex: 1;
+        height: 100%;
+        margin-top: 0 !important;
     }
 
     .submission-details-body {

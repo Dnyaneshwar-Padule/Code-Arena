@@ -85,7 +85,7 @@
                     <li class="nav-item"><a class="nav-link active" href="${pageContext.request.contextPath}/index.jsp">Home</a></li>
                     <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/problems">Problems</a></li>
                     <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/contests">Contests</a></li>
-                    <li class="nav-item"><a class="nav-link" href="#">Leaderboard</a></li>
+                    <li class="nav-item"><a class="nav-link" href="${pageContext.request.contextPath}/leaderboard">Leaderboard</a></li>
                     <c:if test="${not empty sessionScope.loggedInUser and sessionScope.loggedInUser.role == 'ADMIN'}">
                         <li class="nav-item">
                             <a class="nav-link" href="${pageContext.request.contextPath}/admin/problems">Admin</a>

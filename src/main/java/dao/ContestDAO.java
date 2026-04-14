@@ -1,11 +1,14 @@
 package dao;
 
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+
 import model.Contest;
 import model.ContestLeaderboardEntry;
 import model.ContestProblem;
+import model.ContestProblemProgressStatus;
 import model.Submission;
-
-import java.util.List;
 
 public interface ContestDAO {
 
@@ -22,6 +25,10 @@ public interface ContestDAO {
     List<ContestLeaderboardEntry> getLeaderboard(Long contestId);
 
     boolean hasAcceptedSubmission(Long contestId, Long userId, Long problemId, Long excludeSubmissionId);
+
+    Map<Long, ContestProblemProgressStatus> getUserProblemStatuses(Long contestId, Long userId);
+
+    boolean awardFirstSolveAndUpdateLeaderboard(Long contestId, Long userId, Long problemId, int points, LocalDateTime solvedAt);
 
     void upsertLeaderboardScore(Long contestId, Long userId, int points);
 

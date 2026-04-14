@@ -1,5 +1,12 @@
 package service.impl;
 
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.List;
+import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 import dao.ContestDAO;
 import dao.impl.ContestDAOImpl;
 import exception.ServiceException;
@@ -7,16 +14,11 @@ import exception.ValidationException;
 import model.Contest;
 import model.ContestLeaderboardEntry;
 import model.ContestProblem;
+import model.ContestProblemProgressStatus;
 import model.ContestState;
 import model.Submission;
 import model.SubmissionStatus;
 import service.ContestService;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeParseException;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
 public class ContestServiceImpl implements ContestService {
 
@@ -106,6 +108,20 @@ public class ContestServiceImpl implements ContestService {
     }
 
     @Override
+    public Map<Long, ContestProblemProgressStatus> getUserProblemStatuses(Long contestId, Long userId) {
+        validateContestId(contestId);
+        if (userId == null || userId <= 0) {
+            throw new ValidationException("Invalid user id.");
+        }
+        try {
+            return contestDAO.getUserProblemStatuses(contestId, userId);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Failed to fetch contest problem status map", ex);
+            throw new ServiceException("Unable to load contest progress right now.", ex);
+        }
+    }
+
+    @Override
     public void applyAcceptedSubmissionScore(Long submissionId) {
         if (submissionId == null || submissionId <= 0) {
             throw new ValidationException("Invalid submission id.");
@@ -122,12 +138,14 @@ public class ContestServiceImpl implements ContestService {
             Long contestId = submission.getContest().getId();
             Long userId = submission.getUser().getId();
             Long problemId = submission.getProblem().getId();
-            boolean alreadySolved = contestDAO.hasAcceptedSubmission(contestId, userId, problemId, submissionId);
-            if (alreadySolved) {
-                return;
-            }
             int points = contestDAO.getProblemPoints(contestId, problemId);
-            contestDAO.upsertLeaderboardScore(contestId, userId, points);
+            contestDAO.awardFirstSolveAndUpdateLeaderboard(
+                    contestId,
+                    userId,
+                    problemId,
+                    points,
+                    LocalDateTime.now()
+            );
         } catch (ValidationException ex) {
             throw ex;
         } catch (Exception ex) {

@@ -1,11 +1,13 @@
 package service;
 
+import java.util.List;
+import java.util.Map;
+
 import model.Contest;
 import model.ContestLeaderboardEntry;
 import model.ContestProblem;
+import model.ContestProblemProgressStatus;
 import model.ContestState;
-
-import java.util.List;
 
 public interface ContestService {
 
@@ -20,6 +22,8 @@ public interface ContestService {
     boolean isProblemInContest(Long contestId, Long problemId);
 
     List<ContestLeaderboardEntry> getLeaderboard(Long contestId);
+
+    Map<Long, ContestProblemProgressStatus> getUserProblemStatuses(Long contestId, Long userId);
 
     void applyAcceptedSubmissionScore(Long submissionId);
 

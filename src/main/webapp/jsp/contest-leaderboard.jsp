@@ -16,33 +16,39 @@
             <div class="alert alert-danger" role="alert">${error}</div>
         </c:if>
 
-        <c:choose>
-            <c:when test="${empty leaderboardEntries}">
-                <div class="alert alert-secondary mb-0">No scores yet.</div>
-            </c:when>
-            <c:otherwise>
-                <div class="table-responsive">
-                    <table class="table table-striped align-middle">
-                        <thead class="table-light">
-                        <tr>
-                            <th>Rank</th>
-                            <th>Username</th>
-                            <th>Score</th>
+        <c:if test="${empty currentUserEntry and empty leaderboardEntries}">
+            <div class="alert alert-secondary mb-0">No scores yet.</div>
+        </c:if>
+
+        <c:if test="${not empty currentUserEntry or not empty leaderboardEntries}">
+            <div class="table-responsive">
+                <table class="table table-striped align-middle">
+                    <thead class="table-light">
+                    <tr>
+                        <th>Rank</th>
+                        <th>Username</th>
+                        <th>Score</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <c:if test="${not empty currentUserEntry}">
+                        <tr class="table-primary">
+                            <td>${currentUserEntry.rank}</td>
+                            <td>You (${currentUserEntry.username})</td>
+                            <td>${currentUserEntry.score}</td>
                         </tr>
-                        </thead>
-                        <tbody>
-                        <c:forEach var="entry" items="${leaderboardEntries}">
-                            <tr>
-                                <td>${entry.rank}</td>
-                                <td>${entry.username}</td>
-                                <td>${entry.score}</td>
-                            </tr>
-                        </c:forEach>
-                        </tbody>
-                    </table>
-                </div>
-            </c:otherwise>
-        </c:choose>
+                    </c:if>
+                    <c:forEach var="entry" items="${leaderboardEntries}">
+                        <tr>
+                            <td>${entry.rank}</td>
+                            <td>${entry.username}</td>
+                            <td>${entry.score}</td>
+                        </tr>
+                    </c:forEach>
+                    </tbody>
+                </table>
+            </div>
+        </c:if>
     </section>
 </main>
 
