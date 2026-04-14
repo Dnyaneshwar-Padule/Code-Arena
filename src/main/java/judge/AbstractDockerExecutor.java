@@ -17,6 +17,9 @@ import java.util.concurrent.TimeUnit;
 public abstract class AbstractDockerExecutor implements CodeExecutor {
 
     private static final long EXECUTION_TIMEOUT_SECONDS = 10L;
+    private static final int MAX_OUTPUT_BYTES = 10 * 1024;
+    private static final int EXIT_CODE_COMPILATION_ERROR = 11;
+    private static final int EXIT_CODE_RUNTIME_ERROR = 12;
 
     @Override
     public ExecutionResult execute(String code, String input) {
@@ -39,6 +42,14 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
                     "run",
                     "--rm",
                     "-i",
+                    "--network",
+                    "none",
+                    "--pids-limit",
+                    "64",
+                    "--memory",
+                    "256m",
+                    "--cpus",
+                    "0.5",
                     "-v",
                     submissionDir.toAbsolutePath() + ":/app",
                     "-w",
@@ -71,21 +82,30 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
                         stdoutCollector.content(),
                         "Execution timed out.",
                         elapsed(startedAt),
-                        ExecutionStatus.ERROR
+                        ExecutionStatus.TIME_LIMIT_EXCEEDED
                 );
             }
 
             stdoutThread.join();
             stderrThread.join();
+            if (stdoutCollector.exceededLimit() || stderrCollector.exceededLimit()) {
+                return new ExecutionResult(
+                        stdoutCollector.content(),
+                        "Output limit exceeded (10KB).",
+                        elapsed(startedAt),
+                        ExecutionStatus.OUTPUT_LIMIT_EXCEEDED
+                );
+            }
             int exitCode = process.exitValue();
+            ExecutionStatus status = resolveStatus(exitCode, stderrCollector.content());
             return new ExecutionResult(
                     stdoutCollector.content(),
                     stderrCollector.content(),
                     elapsed(startedAt),
-                    exitCode == 0 ? ExecutionStatus.ACCEPTED : ExecutionStatus.ERROR
+                    status
             );
         } catch (Exception ex) {
-            return new ExecutionResult("", ex.getMessage(), 0L, ExecutionStatus.ERROR);
+            return new ExecutionResult("", ex.getMessage(), 0L, ExecutionStatus.RUNTIME_ERROR);
         } finally {
             deleteDirectoryQuietly(submissionDir);
         }
@@ -97,8 +117,34 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
 
     protected abstract String getCompileAndRunCommand();
 
+    protected ExecutionStatus resolveStatus(int exitCode, String stderr) {
+        if (exitCode == 0) {
+            return ExecutionStatus.ACCEPTED;
+        }
+        if (exitCode == EXIT_CODE_COMPILATION_ERROR) {
+            return ExecutionStatus.COMPILATION_ERROR;
+        }
+        if (exitCode == EXIT_CODE_RUNTIME_ERROR) {
+            return ExecutionStatus.RUNTIME_ERROR;
+        }
+        if (exitCode == 137 || containsAny(stderr, "out of memory", "killed")) {
+            return ExecutionStatus.MEMORY_LIMIT_EXCEEDED;
+        }
+        return ExecutionStatus.RUNTIME_ERROR;
+    }
+
     private long elapsed(long startedAt) {
         return Math.max(1L, System.currentTimeMillis() - startedAt);
+    }
+
+    private boolean containsAny(String value, String... tokens) {
+        String normalized = value == null ? "" : value.toLowerCase();
+        for (String token : tokens) {
+            if (normalized.contains(token)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private void deleteDirectoryQuietly(Path directory) {
@@ -123,6 +169,8 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
     private static final class StreamCollector implements Runnable {
         private final InputStream inputStream;
         private final StringBuilder builder = new StringBuilder();
+        private boolean exceededLimit;
+        private int currentBytes;
 
         private StreamCollector(InputStream inputStream) {
             this.inputStream = inputStream;
@@ -133,10 +181,17 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
             try (BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream, StandardCharsets.UTF_8))) {
                 String line;
                 while ((line = reader.readLine()) != null) {
-                    if (!builder.isEmpty()) {
-                        builder.append('\n');
+                    if (exceededLimit) {
+                        continue;
                     }
-                    builder.append(line);
+                    String candidate = builder.isEmpty() ? line : ("\n" + line);
+                    int nextBytes = currentBytes + candidate.getBytes(StandardCharsets.UTF_8).length;
+                    if (nextBytes > MAX_OUTPUT_BYTES) {
+                        exceededLimit = true;
+                        continue;
+                    }
+                    builder.append(candidate);
+                    currentBytes = nextBytes;
                 }
             } catch (IOException ignored) {
                 // Keep collector resilient to stream close races.
@@ -145,6 +200,10 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
 
         private String content() {
             return builder.toString();
+        }
+
+        private boolean exceededLimit() {
+            return exceededLimit;
         }
     }
 }

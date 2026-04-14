@@ -17,6 +17,6 @@ public class JavaExecutor extends AbstractDockerExecutor {
 
     @Override
     protected String getCompileAndRunCommand() {
-        return "javac Main.java && java Main";
+        return "javac Main.java || exit 11; java Main || exit 12";
     }
 }

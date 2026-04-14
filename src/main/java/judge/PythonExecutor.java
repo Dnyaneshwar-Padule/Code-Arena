@@ -17,6 +17,6 @@ public class PythonExecutor extends AbstractDockerExecutor {
 
     @Override
     protected String getCompileAndRunCommand() {
-        return "python3 main.py";
+        return "python3 main.py || exit 12";
     }
 }

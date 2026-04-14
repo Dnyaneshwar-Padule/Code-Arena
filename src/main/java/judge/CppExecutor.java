@@ -17,6 +17,6 @@ public class CppExecutor extends AbstractDockerExecutor {
 
     @Override
     protected String getCompileAndRunCommand() {
-        return "g++ main.cpp -o main && ./main";
+        return "g++ main.cpp -o main || exit 11; ./main || exit 12";
     }
 }

@@ -155,12 +155,50 @@
                                 <div class="card mt-3">
                                     <div class="card-body">
                                         <h2 class="h6 fw-semibold mb-3">Output / Result</h2>
-                                        <p class="mb-2"><strong>Status:</strong> ${empty submissionStatus ? '-' : submissionStatus}</p>
-                                        <p class="mb-2"><strong>Output:</strong></p>
-                                        <pre class="bg-light border rounded p-3 mb-2 section-pre"><code>${empty submissionOutput ? 'No output yet.' : submissionOutput}</code></pre>
-                                        <p class="mb-2"><strong>Error:</strong></p>
-                                        <pre class="bg-light border rounded p-3 mb-2 section-pre"><code>${empty submissionError ? '-' : submissionError}</code></pre>
-                                        <p class="mb-0"><strong>Execution Time:</strong> ${empty submissionExecutionTime ? '-' : submissionExecutionTime} ms</p>
+                                        <div class="d-flex align-items-center gap-2 mb-3">
+                                            <strong class="mb-0">Status:</strong>
+                                            <c:choose>
+                                                <c:when test="${empty submissionStatus}">
+                                                    <span class="badge text-bg-secondary">-</span>
+                                                </c:when>
+                                                <c:when test="${submissionStatus == 'ACCEPTED'}">
+                                                    <span class="badge text-bg-success">ACCEPTED</span>
+                                                </c:when>
+                                                <c:when test="${submissionStatus == 'WRONG'}">
+                                                    <span class="badge text-bg-danger">WRONG</span>
+                                                </c:when>
+                                                <c:when test="${submissionStatus == 'TIME_LIMIT_EXCEEDED'}">
+                                                    <span class="badge text-bg-warning">TIME_LIMIT_EXCEEDED</span>
+                                                </c:when>
+                                                <c:when test="${submissionStatus == 'MEMORY_LIMIT_EXCEEDED'}">
+                                                    <span class="badge text-bg-warning">MEMORY_LIMIT_EXCEEDED</span>
+                                                </c:when>
+                                                <c:when test="${submissionStatus == 'RUNTIME_ERROR'}">
+                                                    <span class="badge text-bg-danger">RUNTIME_ERROR</span>
+                                                </c:when>
+                                                <c:when test="${submissionStatus == 'COMPILATION_ERROR'}">
+                                                    <span class="badge text-bg-dark">COMPILATION_ERROR</span>
+                                                </c:when>
+                                                <c:when test="${submissionStatus == 'OUTPUT_LIMIT_EXCEEDED'}">
+                                                    <span class="badge text-bg-warning">OUTPUT_LIMIT_EXCEEDED</span>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <span class="badge text-bg-secondary">${submissionStatus}</span>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
+
+                                        <p class="mb-2"><strong>Execution Time:</strong> ${empty submissionExecutionTime ? '-' : submissionExecutionTime} ms</p>
+
+                                        <c:if test="${not empty submissionOutput}">
+                                            <p class="mb-2"><strong>Output:</strong></p>
+                                            <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${submissionOutput}</code></pre>
+                                        </c:if>
+
+                                        <c:if test="${not empty submissionError}">
+                                            <p class="mb-2"><strong>Error:</strong></p>
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${submissionError}</code></pre>
+                                        </c:if>
                                     </div>
                                 </div>
                             </section>

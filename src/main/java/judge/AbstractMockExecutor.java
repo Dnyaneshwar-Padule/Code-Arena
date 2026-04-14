@@ -11,7 +11,7 @@ abstract class AbstractMockExecutor implements CodeExecutor {
         String normalizedCode = code == null ? "" : code;
 
         if (normalizedCode.contains("RUNTIME_ERROR")) {
-            return new ExecutionResult("", "Runtime error during mocked execution.", elapsed(startedAt), ExecutionStatus.ERROR);
+            return new ExecutionResult("", "Runtime error during mocked execution.", elapsed(startedAt), ExecutionStatus.RUNTIME_ERROR);
         }
 
         if (normalizedCode.contains("WRONG_ANSWER")) {

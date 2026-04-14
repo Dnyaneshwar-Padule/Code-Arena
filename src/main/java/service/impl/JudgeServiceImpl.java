@@ -60,11 +60,14 @@ public class JudgeServiceImpl implements JudgeService {
             totalTime += executionResult.getExecutionTime();
             lastOutput = safe(executionResult.getOutput());
 
-            if (executionResult.getStatus() == ExecutionStatus.ERROR) {
+            if (executionResult.getStatus() != ExecutionStatus.ACCEPTED
+                    && executionResult.getStatus() != ExecutionStatus.WRONG) {
                 return new JudgeResult(
                         SubmissionStatus.ERROR,
                         lastOutput,
-                        safe(executionResult.getError()).isBlank() ? "Runtime error during execution." : executionResult.getError(),
+                        safe(executionResult.getError()).isBlank()
+                                ? executionResult.getStatus().name()
+                                : executionResult.getError(),
                         totalTime
                 );
             }

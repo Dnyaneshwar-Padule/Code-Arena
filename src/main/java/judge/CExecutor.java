@@ -17,6 +17,6 @@ public class CExecutor extends AbstractDockerExecutor {
 
     @Override
     protected String getCompileAndRunCommand() {
-        return "gcc main.c -o main && ./main";
+        return "gcc main.c -o main || exit 11; ./main || exit 12";
     }
 }
