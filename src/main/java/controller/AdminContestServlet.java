@@ -1,5 +1,7 @@
 package controller;
 
+import java.io.IOException;
+
 import exception.ServiceException;
 import exception.ValidationException;
 import jakarta.servlet.ServletException;
@@ -8,8 +10,6 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import model.Contest;
-import model.ContestProblem;
-import model.Problem;
 import model.User;
 import model.UserRole;
 import service.ContestService;
@@ -17,9 +17,6 @@ import service.ProblemService;
 import service.impl.ContestServiceImpl;
 import service.impl.ProblemServiceImpl;
 import util.ErrorHandlerUtil;
-
-import java.io.IOException;
-import java.util.List;
 
 @WebServlet(
         name = "AdminContestServlet",
@@ -77,16 +74,7 @@ public class AdminContestServlet extends HttpServlet {
     }
 
     private void showContestList(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            request.setAttribute("contests", contestService.getAllContests());
-            request.getRequestDispatcher("/jsp/admin/admin-contest-list.jsp").forward(request, response);
-        } catch (Exception ex) {
-            ErrorHandlerUtil.handleException(
-                    request, response, ex,
-                    "Unable to load contests right now.",
-                    "/jsp/admin/admin-contest-list.jsp"
-            );
-        }
+        response.sendRedirect(request.getContextPath() + "/contests");
     }
 
     private void showCreateForm(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -100,11 +88,11 @@ public class AdminContestServlet extends HttpServlet {
             request.setAttribute("contest", contestService.getContestById(contestId));
             request.setAttribute("formMode", "edit");
             request.getRequestDispatcher("/jsp/admin/admin-contest-create.jsp").forward(request, response);
-        } catch (Exception ex) {
+        } catch (ServiceException ex) {
             ErrorHandlerUtil.handleException(
                     request, response, ex,
                     "Unable to load contest for editing.",
-                    "/jsp/admin/admin-contest-list.jsp"
+                    "/jsp/contest-list.jsp"
             );
         }
     }
@@ -117,8 +105,8 @@ public class AdminContestServlet extends HttpServlet {
                     getTrimmedParameter(request, "startTime"),
                     getTrimmedParameter(request, "endTime")
             );
-            response.sendRedirect(request.getContextPath() + "/admin/contests");
-        } catch (ValidationException | ServiceException ex) {
+                response.sendRedirect(request.getContextPath() + "/contests");
+        } catch (ServiceException ex) {
             request.setAttribute("formMode", "create");
             ErrorHandlerUtil.handleException(
                     request, response, ex,
@@ -138,8 +126,8 @@ public class AdminContestServlet extends HttpServlet {
                     getTrimmedParameter(request, "startTime"),
                     getTrimmedParameter(request, "endTime")
             );
-            response.sendRedirect(request.getContextPath() + "/admin/contests");
-        } catch (ValidationException | ServiceException ex) {
+            response.sendRedirect(request.getContextPath() + "/contests");
+        } catch ( ServiceException ex) {
             request.setAttribute("formMode", "edit");
             request.setAttribute("contest", buildContestFromRequest(request));
             ErrorHandlerUtil.handleException(
@@ -157,7 +145,7 @@ public class AdminContestServlet extends HttpServlet {
         } catch (Exception ignored) {
             // Keep delete flow simple.
         }
-        response.sendRedirect(request.getContextPath() + "/admin/contests");
+        response.sendRedirect(request.getContextPath() + "/contests");
     }
 
     private void showContestProblemsPage(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
@@ -167,11 +155,11 @@ public class AdminContestServlet extends HttpServlet {
             request.setAttribute("contestProblems", contestService.getContestProblems(contestId));
             request.setAttribute("problems", problemService.getAllProblems());
             request.getRequestDispatcher("/jsp/admin/admin-contest-problems.jsp").forward(request, response);
-        } catch (Exception ex) {
+        } catch (ServiceException ex) {
             ErrorHandlerUtil.handleException(
                     request, response, ex,
                     "Unable to load contest problems.",
-                    "/jsp/admin/admin-contest-list.jsp"
+                    "/jsp/contest-list.jsp"
             );
         }
     }
@@ -185,7 +173,7 @@ public class AdminContestServlet extends HttpServlet {
             Integer points = parseInteger(getTrimmedParameter(request, "points"), "Invalid points.");
             contestService.addProblemToContest(contestId, problemId, order, points);
             response.sendRedirect(request.getContextPath() + "/admin/contest/problems?contestId=" + contestId);
-        } catch (ValidationException | ServiceException ex) {
+        } catch (ServiceException ex) {
             if (contestId != null) {
                 try {
                     request.setAttribute("contest", contestService.getContestById(contestId));

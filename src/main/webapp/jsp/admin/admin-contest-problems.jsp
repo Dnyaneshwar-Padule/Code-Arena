@@ -5,7 +5,7 @@
 
 <main class="flex-grow-1 py-5 bg-light">
     <section class="container">
-        <a class="btn btn-outline-secondary btn-sm mb-4" href="${pageContext.request.contextPath}/admin/contests">Back to Contests</a>
+        <a class="btn btn-outline-secondary btn-sm mb-4" href="${pageContext.request.contextPath}/contests">Back to Contests</a>
 
         <c:if test="${not empty contest}">
             <h1 class="h4 fw-bold mb-1">${contest.title}</h1>

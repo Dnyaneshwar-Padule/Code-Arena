@@ -48,7 +48,7 @@
 
                             <div class="d-flex gap-2 mt-4">
                                 <button type="submit" class="btn btn-primary">Save</button>
-                                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/admin/contests">Cancel</a>
+                                <a class="btn btn-outline-secondary" href="${pageContext.request.contextPath}/contests">Cancel</a>
                             </div>
                         </form>
                     </div>

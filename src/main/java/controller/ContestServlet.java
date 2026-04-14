@@ -93,7 +93,7 @@ public class ContestServlet extends HttpServlet {
             request.setAttribute("contest", contest);
             request.setAttribute("leaderboardEntries", entries);
             request.getRequestDispatcher("/jsp/contest-leaderboard.jsp").forward(request, response);
-        } catch (ValidationException | ServiceException ex) {
+        } catch ( ServiceException ex) {
             ErrorHandlerUtil.handleException(
                     request,
                     response,

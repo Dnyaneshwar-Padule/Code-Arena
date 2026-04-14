@@ -5,8 +5,11 @@
 
 <main class="flex-grow-1 py-5 bg-light">
     <section class="container">
-        <div class="d-flex justify-content-between align-items-center mb-4">
+        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
             <h1 class="h3 fw-bold mb-0">Contests</h1>
+            <c:if test="${not empty sessionScope.loggedInUser and sessionScope.loggedInUser.role == 'ADMIN'}">
+                <a class="btn btn-primary" href="${pageContext.request.contextPath}/admin/contest/create">+ Create Contest</a>
+            </c:if>
         </div>
 
         <c:if test="${not empty error}">
@@ -33,10 +36,25 @@
                                                 <span>End: ${contest.endTime}</span>
                                             </div>
                                         </div>
-                                        <a class="btn btn-primary btn-sm"
-                                           href="${pageContext.request.contextPath}/contest?id=${contest.id}">
-                                            View Contest
-                                        </a>
+                                        <div class="d-flex flex-wrap gap-2 justify-content-end">
+                                            <c:choose>
+                                                <c:when test="${not empty sessionScope.loggedInUser and sessionScope.loggedInUser.role == 'ADMIN'}">
+                                                    <a class="btn btn-sm btn-outline-primary"
+                                                       href="${pageContext.request.contextPath}/admin/contest/edit?id=${contest.id}">Edit</a>
+                                                    <a class="btn btn-sm btn-outline-secondary"
+                                                       href="${pageContext.request.contextPath}/admin/contest/problems?contestId=${contest.id}">Add Problems</a>
+                                                    <a class="btn btn-sm btn-outline-danger"
+                                                       href="${pageContext.request.contextPath}/admin/contest/delete?id=${contest.id}"
+                                                       onclick="return confirm('Delete this contest and all linked contest problems?');">Delete</a>
+                                                </c:when>
+                                                <c:otherwise>
+                                                    <a class="btn btn-primary btn-sm"
+                                                       href="${pageContext.request.contextPath}/contest?id=${contest.id}">
+                                                        View Contest
+                                                    </a>
+                                                </c:otherwise>
+                                            </c:choose>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
