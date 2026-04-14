@@ -19,9 +19,28 @@ public interface ProblemService {
 
     Problem getProblemById(Long id);
 
-    Problem createProblem(String title, String description, String difficulty, Integer timeLimit, Integer memoryLimit);
+    Problem createProblem(
+            String title,
+            String description,
+            String difficulty,
+            Integer timeLimit,
+            Integer memoryLimit,
+            String inputFormat,
+            String outputFormat,
+            String constraints
+    );
 
-    Problem updateProblem(Long id, String title, String description, String difficulty, Integer timeLimit, Integer memoryLimit);
+    Problem updateProblem(
+            Long id,
+            String title,
+            String description,
+            String difficulty,
+            Integer timeLimit,
+            Integer memoryLimit,
+            String inputFormat,
+            String outputFormat,
+            String constraints
+    );
 
     void deleteProblem(Long id);
 }

@@ -9,3 +9,29 @@
     line-height: 1.5;
     min-height: 3em;
 }
+
+.problem-pane {
+    max-height: calc(100vh - 180px);
+    overflow-y: auto;
+}
+
+.editor-pane {
+    height: 100%;
+}
+
+.editor-textarea {
+    min-height: 400px;
+    font-family: Consolas, "Courier New", monospace;
+    font-size: 0.95rem;
+}
+
+.section-pre {
+    white-space: pre-wrap;
+    word-break: break-word;
+}
+
+@media (min-width: 992px) {
+    .editor-column-divider {
+        border-left: 1px solid #dee2e6;
+    }
+}

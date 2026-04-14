@@ -13,59 +13,160 @@
 
         <c:if test="${not empty problem}">
             <article class="card border-0 shadow-sm">
-                <div class="card-body p-4 p-md-5">
-                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
-                        <h1 class="h3 fw-bold mb-0">${problem.title}</h1>
-                        <span class="badge text-bg-primary">${problem.difficulty}</span>
-                    </div>
-                    <p class="text-secondary mb-4">${problem.description}</p>
-
-                    <div class="row g-3">
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 bg-white h-100">
-                                <h2 class="h6 fw-semibold">Time Limit</h2>
-                                <p class="mb-0 text-secondary">${problem.timeLimit} ms</p>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="border rounded-3 p-3 bg-white h-100">
-                                <h2 class="h6 fw-semibold">Memory Limit</h2>
-                                <p class="mb-0 text-secondary">${problem.memoryLimit} MB</p>
-                            </div>
-                        </div>
-                    </div>
-
-                    <section class="mt-4">
-                        <h2 class="h5 fw-semibold mb-3">Sample Test Cases</h2>
-                        <c:choose>
-                            <c:when test="${empty sampleTestCases}">
-                                <p class="text-secondary mb-0">No sample test cases available for this problem.</p>
-                            </c:when>
-                            <c:otherwise>
-                                <div class="row g-3">
-                                    <c:forEach var="testCase" items="${sampleTestCases}" varStatus="status">
-                                        <div class="col-12">
-                                            <div class="border rounded-3 p-3 bg-white">
-                                                <h3 class="h6 fw-bold mb-3">Sample ${status.index + 1}</h3>
-                                                <div class="mb-3">
-                                                    <p class="fw-semibold mb-1">Input</p>
-                                                    <pre class="bg-light border rounded p-3 mb-0"><code>${testCase.input}</code></pre>
-                                                </div>
-                                                <div>
-                                                    <p class="fw-semibold mb-1">Expected Output</p>
-                                                    <pre class="bg-light border rounded p-3 mb-0"><code>${testCase.expectedOutput}</code></pre>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </c:forEach>
+                <div class="card-body p-3 p-md-4">
+                    <div class="row g-4">
+                        <div class="col-12 col-lg-6">
+                            <section class="problem-pane pe-lg-3">
+                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                                    <h1 class="h3 fw-bold mb-0">${problem.title}</h1>
+                                    <span class="badge text-bg-primary">${problem.difficulty}</span>
                                 </div>
-                            </c:otherwise>
-                        </c:choose>
-                    </section>
+
+                                <div class="row g-2 mb-3">
+                                    <div class="col-6">
+                                        <div class="border rounded-3 p-2 bg-white">
+                                            <small class="fw-semibold d-block">Time Limit</small>
+                                            <span class="text-secondary">${problem.timeLimit} ms</span>
+                                        </div>
+                                    </div>
+                                    <div class="col-6">
+                                        <div class="border rounded-3 p-2 bg-white">
+                                            <small class="fw-semibold d-block">Memory Limit</small>
+                                            <span class="text-secondary">${problem.memoryLimit} MB</span>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <section class="mb-4">
+                                    <h2 class="h6 fw-semibold">Description</h2>
+                                    <p class="text-secondary mb-0 section-pre">${problem.description}</p>
+                                </section>
+
+                                <section class="mb-4">
+                                    <h2 class="h6 fw-semibold">Input Format</h2>
+                                    <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>
+                                        <c:choose>
+                                            <c:when test="${not empty problem.inputFormat}">${problem.inputFormat}</c:when>
+                                            <c:otherwise>Not specified.</c:otherwise>
+                                        </c:choose>
+                                    </code></pre>
+                                </section>
+
+                                <section class="mb-4">
+                                    <h2 class="h6 fw-semibold">Output Format</h2>
+                                    <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>
+                                        <c:choose>
+                                            <c:when test="${not empty problem.outputFormat}">${problem.outputFormat}</c:when>
+                                            <c:otherwise>Not specified.</c:otherwise>
+                                        </c:choose>
+                                    </code></pre>
+                                </section>
+
+                                <section class="mb-4">
+                                    <h2 class="h6 fw-semibold">Constraints</h2>
+                                    <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>
+                                        <c:choose>
+                                            <c:when test="${not empty problem.constraints}">${problem.constraints}</c:when>
+                                            <c:otherwise>Not specified.</c:otherwise>
+                                        </c:choose>
+                                    </code></pre>
+                                </section>
+
+                                <section>
+                                    <h2 class="h5 fw-semibold mb-3">Sample Test Cases</h2>
+                                    <c:choose>
+                                        <c:when test="${empty sampleTestCases}">
+                                            <p class="text-secondary mb-0">No sample test cases available for this problem.</p>
+                                        </c:when>
+                                        <c:otherwise>
+                                            <div class="row g-3">
+                                                <c:forEach var="testCase" items="${sampleTestCases}" varStatus="status">
+                                                    <div class="col-12">
+                                                        <div class="border rounded-3 p-3 bg-white">
+                                                            <h3 class="h6 fw-bold mb-3">Sample ${status.index + 1}</h3>
+                                                            <div class="mb-3">
+                                                                <p class="fw-semibold mb-1">Input</p>
+                                                                <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${testCase.input}</code></pre>
+                                                            </div>
+                                                            <div>
+                                                                <p class="fw-semibold mb-1">Output</p>
+                                                                <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${testCase.expectedOutput}</code></pre>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+                                                </c:forEach>
+                                            </div>
+                                        </c:otherwise>
+                                    </c:choose>
+                                </section>
+                            </section>
+                        </div>
+
+                        <div class="col-12 col-lg-6 editor-column-divider">
+                            <section class="editor-pane ps-lg-3 d-flex flex-column">
+                                <form method="post" action="${pageContext.request.contextPath}/submit" class="d-flex flex-column h-100">
+                                    <input type="hidden" name="problemId" value="${problem.id}">
+
+                                    <div class="mb-3">
+                                        <label for="language" class="form-label fw-semibold">Language</label>
+                                        <select id="language" name="language" class="form-select">
+                                            <option value="C">C</option>
+                                            <option value="CPP">C++</option>
+                                            <option value="JAVA" selected>Java</option>
+                                            <option value="PYTHON">Python</option>
+                                        </select>
+                                    </div>
+
+                                    <div class="mb-3 flex-grow-1">
+                                        <label for="code" class="form-label fw-semibold">Code Editor</label>
+                                        <textarea id="code" name="code" class="form-control editor-textarea" spellcheck="false">public class Main {
+    public static void main(String[] args) {
+        // your code here
+    }
+}</textarea>
+                                    </div>
+
+                                    <div class="d-flex gap-2 mt-auto">
+                                        <button type="submit" name="action" value="run" class="btn btn-outline-secondary">Run</button>
+                                        <button type="submit" name="action" value="submit" class="btn btn-primary">Submit</button>
+                                    </div>
+                                </form>
+
+                                <div class="card mt-3">
+                                    <div class="card-body">
+                                        <h2 class="h6 fw-semibold mb-3">Output / Result</h2>
+                                        <p class="mb-2"><strong>Status:</strong> ${empty submissionStatus ? '-' : submissionStatus}</p>
+                                        <p class="mb-2"><strong>Output:</strong></p>
+                                        <pre class="bg-light border rounded p-3 mb-2 section-pre"><code>${empty submissionOutput ? 'No output yet.' : submissionOutput}</code></pre>
+                                        <p class="mb-0"><strong>Execution Time:</strong> ${empty submissionExecutionTime ? '-' : submissionExecutionTime} ms</p>
+                                    </div>
+                                </div>
+                            </section>
+                        </div>
+                    </div>
                 </div>
             </article>
         </c:if>
     </section>
 </main>
+
+<script>
+    (function () {
+        const languageSelect = document.getElementById('language');
+        const codeInput = document.getElementById('code');
+        if (!languageSelect || !codeInput) {
+            return;
+        }
+        const templates = {
+            C: "#include <stdio.h>\\n\\nint main() {\\n    // your code here\\n    return 0;\\n}\\n",
+            CPP: "#include <bits/stdc++.h>\\nusing namespace std;\\n\\nint main() {\\n    // your code here\\n    return 0;\\n}\\n",
+            JAVA: "public class Main {\\n    public static void main(String[] args) {\\n        // your code here\\n    }\\n}\\n",
+            PYTHON: "# your code here\\n"
+        };
+        languageSelect.addEventListener('change', function () {
+            codeInput.value = templates[this.value] || "";
+        });
+    })();
+</script>
 
 <%@ include file="components/footer.jsp" %>

@@ -152,7 +152,10 @@ public class AdminProblemServlet extends HttpServlet {
                     request.getParameter("description"),
                     request.getParameter("difficulty"),
                     parseInteger(request.getParameter("timeLimit")),
-                    parseInteger(request.getParameter("memoryLimit"))
+                    parseInteger(request.getParameter("memoryLimit")),
+                    request.getParameter("inputFormat"),
+                    request.getParameter("outputFormat"),
+                    request.getParameter("constraints")
             );
             response.sendRedirect(request.getContextPath() + "/admin/problems");
         } catch (ServiceException ex) {
@@ -177,7 +180,10 @@ public class AdminProblemServlet extends HttpServlet {
                     request.getParameter("description"),
                     request.getParameter("difficulty"),
                     parseInteger(request.getParameter("timeLimit")),
-                    parseInteger(request.getParameter("memoryLimit"))
+                    parseInteger(request.getParameter("memoryLimit")),
+                    request.getParameter("inputFormat"),
+                    request.getParameter("outputFormat"),
+                    request.getParameter("constraints")
             );
             response.sendRedirect(request.getContextPath() + "/admin/problems");
         } catch (ServiceException ex) {
@@ -373,6 +379,9 @@ public class AdminProblemServlet extends HttpServlet {
         }
         problem.setTitle(request.getParameter("title"));
         problem.setDescription(request.getParameter("description"));
+        problem.setInputFormat(request.getParameter("inputFormat"));
+        problem.setOutputFormat(request.getParameter("outputFormat"));
+        problem.setConstraints(request.getParameter("constraints"));
         String timeLimit = request.getParameter("timeLimit");
         if (timeLimit != null && !timeLimit.isBlank()) {
             try {

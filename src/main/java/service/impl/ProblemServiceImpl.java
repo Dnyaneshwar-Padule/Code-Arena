@@ -99,10 +99,29 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public Problem createProblem(String title, String description, String difficulty, Integer timeLimit, Integer memoryLimit) {
+    public Problem createProblem(
+            String title,
+            String description,
+            String difficulty,
+            Integer timeLimit,
+            Integer memoryLimit,
+            String inputFormat,
+            String outputFormat,
+            String constraints
+    ) {
         try {
             Problem problem = new Problem();
-            applyProblemFields(problem, title, description, difficulty, timeLimit, memoryLimit);
+            applyProblemFields(
+                    problem,
+                    title,
+                    description,
+                    difficulty,
+                    timeLimit,
+                    memoryLimit,
+                    inputFormat,
+                    outputFormat,
+                    constraints
+            );
             return problemDAO.createProblem(problem);
         } catch (ValidationException ex) {
             throw ex;
@@ -113,7 +132,17 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
-    public Problem updateProblem(Long id, String title, String description, String difficulty, Integer timeLimit, Integer memoryLimit) {
+    public Problem updateProblem(
+            Long id,
+            String title,
+            String description,
+            String difficulty,
+            Integer timeLimit,
+            Integer memoryLimit,
+            String inputFormat,
+            String outputFormat,
+            String constraints
+    ) {
         if (id == null || id <= 0) {
             throw new ValidationException("Invalid problem id.");
         }
@@ -122,7 +151,17 @@ public class ProblemServiceImpl implements ProblemService {
             if (existing == null) {
                 throw new ValidationException("Problem not found.");
             }
-            applyProblemFields(existing, title, description, difficulty, timeLimit, memoryLimit);
+            applyProblemFields(
+                    existing,
+                    title,
+                    description,
+                    difficulty,
+                    timeLimit,
+                    memoryLimit,
+                    inputFormat,
+                    outputFormat,
+                    constraints
+            );
             return problemDAO.updateProblem(existing);
         } catch (ValidationException ex) {
             throw ex;
@@ -151,7 +190,10 @@ public class ProblemServiceImpl implements ProblemService {
             String description,
             String difficulty,
             Integer timeLimit,
-            Integer memoryLimit
+            Integer memoryLimit,
+            String inputFormat,
+            String outputFormat,
+            String constraints
     ) {
         String normalizedTitle = title == null ? "" : title.trim();
         String normalizedDescription = description == null ? "" : description.trim();
@@ -182,5 +224,16 @@ public class ProblemServiceImpl implements ProblemService {
         problem.setDifficulty(parsedDifficulty);
         problem.setTimeLimit(timeLimit);
         problem.setMemoryLimit(memoryLimit);
+        problem.setInputFormat(normalizeOptionalText(inputFormat));
+        problem.setOutputFormat(normalizeOptionalText(outputFormat));
+        problem.setConstraints(normalizeOptionalText(constraints));
+    }
+
+    private String normalizeOptionalText(String value) {
+        if (value == null) {
+            return null;
+        }
+        String trimmed = value.trim();
+        return trimmed.isEmpty() ? null : trimmed;
     }
 }

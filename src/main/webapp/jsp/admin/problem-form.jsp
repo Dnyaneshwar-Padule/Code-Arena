@@ -37,6 +37,60 @@
                                 <textarea id="description" name="description" rows="5" class="form-control" required>${problem.description}</textarea>
                             </div>
 
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="inputFormat" class="form-label mb-0">Input Format</label>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="inputFormat" data-template="int n">Add Integer</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="inputFormat" data-template="int[] arr (size n)">Add Array</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="inputFormat" data-template="string s">Add String</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="inputFormat" data-template="1 <= n <= 10^5">Add Range</button>
+                                    </div>
+                                </div>
+                                <textarea id="inputFormat" name="inputFormat" rows="3" class="form-control"
+                                          placeholder="First line contains n&#10;Second line contains n integers">${problem.inputFormat}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="outputFormat" class="form-label mb-0">Output Format</label>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="outputFormat" data-template="int result">Add Integer</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="outputFormat" data-template="int[] ans">Add Array</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="outputFormat" data-template="string answer">Add String</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="outputFormat" data-template="Print one value per line">Add Range</button>
+                                    </div>
+                                </div>
+                                <textarea id="outputFormat" name="outputFormat" rows="3" class="form-control"
+                                          placeholder="Print the result">${problem.outputFormat}</textarea>
+                            </div>
+
+                            <div class="mb-3">
+                                <div class="d-flex justify-content-between align-items-center mb-1">
+                                    <label for="constraints" class="form-label mb-0">Constraints</label>
+                                    <div class="d-flex flex-wrap gap-1">
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="constraints" data-template="1 <= x <= 10^9">Add Integer</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="constraints" data-template="1 <= n <= 10^5">Add Array</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="constraints" data-template="1 <= |s| <= 10^5">Add String</button>
+                                        <button type="button" class="btn btn-outline-secondary btn-sm format-helper-btn"
+                                                data-target="constraints" data-template="Sum of n over all tests <= 2*10^5">Add Range</button>
+                                    </div>
+                                </div>
+                                <textarea id="constraints" name="constraints" rows="3" class="form-control"
+                                          placeholder="1 &lt;= n &lt;= 10^5">${problem.constraints}</textarea>
+                            </div>
+
                             <div class="row g-3">
                                 <div class="col-md-4">
                                     <label for="difficulty" class="form-label">Difficulty</label>
@@ -78,3 +132,21 @@
 </main>
 
 <%@ include file="../components/footer.jsp" %>
+<script>
+    (function () {
+        const helperButtons = document.querySelectorAll('.format-helper-btn');
+        helperButtons.forEach(function (button) {
+            button.addEventListener('click', function () {
+                const targetId = this.getAttribute('data-target');
+                const template = this.getAttribute('data-template');
+                const target = document.getElementById(targetId);
+                if (!target || !template) {
+                    return;
+                }
+                const current = target.value.trim();
+                target.value = current ? (current + "\n" + template) : template;
+                target.focus();
+            });
+        });
+    })();
+</script>
