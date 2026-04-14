@@ -68,7 +68,7 @@ public class JudgeServiceImpl implements JudgeService {
             if (executionResult.getStatus() != ExecutionStatus.ACCEPTED
                     && executionResult.getStatus() != ExecutionStatus.WRONG) {
                 JudgeResult failedResult = new JudgeResult(
-                        SubmissionStatus.ERROR,
+                        mapExecutionStatusToSubmissionStatus(executionResult.getStatus()),
                         lastOutput,
                         safe(executionResult.getError()).isBlank()
                                 ? executionResult.getStatus().name()
@@ -106,6 +106,18 @@ public class JudgeServiceImpl implements JudgeService {
         acceptedResult.setPassedCount(passedCount);
         acceptedResult.setTotalCount(totalCount);
         return acceptedResult;
+    }
+
+    private SubmissionStatus mapExecutionStatusToSubmissionStatus(ExecutionStatus executionStatus) {
+        if (executionStatus == null) {
+            return SubmissionStatus.ERROR;
+        }
+        return switch (executionStatus) {
+            case TIME_LIMIT_EXCEEDED -> SubmissionStatus.TIME_LIMIT_EXCEEDED;
+            case COMPILATION_ERROR -> SubmissionStatus.COMPILATION_ERROR;
+            case RUNTIME_ERROR, MEMORY_LIMIT_EXCEEDED, OUTPUT_LIMIT_EXCEEDED -> SubmissionStatus.RUNTIME_ERROR;
+            default -> SubmissionStatus.ERROR;
+        };
     }
 
     private void applyProgressDetails(

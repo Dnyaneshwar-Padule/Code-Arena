@@ -54,6 +54,12 @@ public class Submission {
     @Column(name = "memory_used")
     private Integer memoryUsed;
 
+    @Column(name = "passed_count")
+    private Integer passedCount;
+
+    @Column(name = "total_count")
+    private Integer totalCount;
+
     @Column(name = "created_at", nullable = false)
     private LocalDateTime createdAt;
 
@@ -148,6 +154,22 @@ public class Submission {
 
     public void setMemoryUsed(Integer memoryUsed) {
         this.memoryUsed = memoryUsed;
+    }
+
+    public Integer getPassedCount() {
+        return passedCount;
+    }
+
+    public void setPassedCount(Integer passedCount) {
+        this.passedCount = passedCount;
+    }
+
+    public Integer getTotalCount() {
+        return totalCount;
+    }
+
+    public void setTotalCount(Integer totalCount) {
+        this.totalCount = totalCount;
     }
 
     public LocalDateTime getCreatedAt() {

@@ -239,7 +239,7 @@
                                         </div>
 
                                         <p class="mb-2"><strong>Execution Time:</strong> <span id="resultExecutionTime">${empty submissionExecutionTime ? '-' : submissionExecutionTime}</span> ms</p>
-                                        <p class="mb-2"><strong>Passed:</strong> <span id="resultPassedCount">-</span>/<span id="resultTotalCount">-</span></p>
+                                        <p class="mb-2"><strong>Passed:</strong> <span id="resultPassedCount">${empty submissionPassedCount ? '-' : submissionPassedCount}</span>/<span id="resultTotalCount">${empty submissionTotalCount ? '-' : submissionTotalCount}</span></p>
 
                                         <p class="mb-2"><strong>Output:</strong></p>
                                         <pre class="bg-light border rounded p-3 mb-3 section-pre"><code id="resultOutput">${empty submissionOutput ? '' : submissionOutput}</code></pre>
@@ -521,7 +521,12 @@ if __name__ == "__main__":
                 case 'WRONG':
                     return 'text-bg-danger';
                 case 'TLE':
+                case 'TIME_LIMIT_EXCEEDED':
                     return 'text-bg-warning';
+                case 'RUNTIME_ERROR':
+                    return 'text-bg-danger';
+                case 'COMPILATION_ERROR':
+                    return 'text-bg-dark';
                 case 'ERROR':
                     return 'text-bg-dark';
                 default:

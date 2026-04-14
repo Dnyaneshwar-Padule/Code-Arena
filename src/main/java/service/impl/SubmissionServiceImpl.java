@@ -70,6 +70,8 @@ public class SubmissionServiceImpl implements SubmissionService {
             savedSubmission.setOutput(judgeResult.getOutput());
             savedSubmission.setErrorMessage(judgeResult.getErrorMessage());
             savedSubmission.setExecutionTime(toInteger(judgeResult.getExecutionTime()));
+            savedSubmission.setPassedCount(judgeResult.getPassedCount());
+            savedSubmission.setTotalCount(judgeResult.getTotalCount());
 
             return submissionDAO.updateSubmission(savedSubmission);
         } catch (ValidationException ex) {

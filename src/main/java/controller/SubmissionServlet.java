@@ -59,6 +59,8 @@ public class SubmissionServlet extends HttpServlet {
             request.setAttribute("submissionOutput", submission.getOutput());
             request.setAttribute("submissionError", submission.getErrorMessage());
             request.setAttribute("submissionExecutionTime", submission.getExecutionTime());
+            request.setAttribute("submissionPassedCount", submission.getPassedCount());
+            request.setAttribute("submissionTotalCount", submission.getTotalCount());
             request.setAttribute("submissions", submissionService.getUserSubmissions(problemId, loggedInUser.getId()));
             request.setAttribute("activeTab", "run");
             request.getRequestDispatcher("/jsp/problem-detail.jsp").forward(request, response);
