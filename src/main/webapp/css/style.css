@@ -30,8 +30,17 @@
 }
 
 @media (min-width: 992px) {
+    .problem-detail-layout {
+        min-height: calc(100vh - 180px);
+    }
+
+    .problem-detail-column {
+        display: flex;
+        flex-direction: column;
+    }
+
     .problem-pane {
-        height: calc(100vh - 180px);
+        height: 100%;
     }
 
     .editor-column-divider {

@@ -15,8 +15,8 @@
         <c:if test="${not empty problem}">
             <article class="card border-0 shadow-sm">
                 <div class="card-body p-3 p-md-4">
-                    <div class="row g-4">
-                        <div class="col-12 col-lg-6">
+                    <div class="row g-4 problem-detail-layout">
+                        <div class="col-12 col-lg-6 problem-detail-column">
                             <section class="problem-pane pe-lg-3">
                                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                                     <h1 class="h3 fw-bold mb-0">${problem.title}</h1>
@@ -109,7 +109,7 @@
                             </section>
                         </div>
 
-                        <div class="col-12 col-lg-6 editor-column-divider">
+                        <div class="col-12 col-lg-6 editor-column-divider problem-detail-column">
                             <section class="editor-pane ps-lg-3 d-flex flex-column">
                                 <form method="post" action="${pageContext.request.contextPath}/submit" class="d-flex flex-column h-100">
                                     <input type="hidden" name="problemId" value="${problem.id}">
