@@ -16,10 +16,11 @@ import java.util.concurrent.TimeUnit;
  */
 public abstract class AbstractDockerExecutor implements CodeExecutor {
 
-    private static final long EXECUTION_TIMEOUT_SECONDS = 10L;
+    private static final long GLOBAL_MAX_TIMEOUT_MS = 10_000L;
     private static final int MAX_OUTPUT_BYTES = 10 * 1024;
     private static final int EXIT_CODE_COMPILATION_ERROR = 11;
     private static final int EXIT_CODE_RUNTIME_ERROR = 12;
+    private static final int EXIT_CODE_TIME_LIMIT_EXCEEDED = 13;
 
     @Override
     public ExecutionResult execute(String code, String input) {
@@ -37,6 +38,9 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
                     StandardOpenOption.WRITE
             );
 
+            long effectiveTimeoutMs = resolveEffectiveTimeoutMs();
+            long timeoutSeconds = Math.max(1L, effectiveTimeoutMs / 1000L);
+
             ProcessBuilder processBuilder = new ProcessBuilder(
                     "docker",
                     "run",
@@ -46,10 +50,13 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
                     "none",
                     "--pids-limit",
                     "64",
+                    "--log-driver=none",
                     "--memory",
                     "256m",
                     "--cpus",
                     "0.5",
+                    "--tmpfs",
+                    "/tmp:rw,nosuid,nodev,size=64m",
                     "-v",
                     submissionDir.toAbsolutePath() + ":/app",
                     "-w",
@@ -57,7 +64,7 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
                     getDockerImage(),
                     "bash",
                     "-c",
-                    getCompileAndRunCommand()
+                    buildExecutionCommand(timeoutSeconds)
             );
 
             long startedAt = System.currentTimeMillis();
@@ -75,9 +82,10 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
                 stdin.flush();
             }
 
-            boolean finishedInTime = process.waitFor(EXECUTION_TIMEOUT_SECONDS, TimeUnit.SECONDS);
+            boolean finishedInTime = process.waitFor(effectiveTimeoutMs, TimeUnit.MILLISECONDS);
             if (!finishedInTime) {
                 process.destroyForcibly();
+                process.waitFor(2, TimeUnit.SECONDS);
                 return new ExecutionResult(
                         stdoutCollector.content(),
                         "Execution timed out.",
@@ -115,11 +123,16 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
 
     protected abstract String getDockerImage();
 
-    protected abstract String getCompileAndRunCommand();
+    protected abstract String getCompileCommand();
+
+    protected abstract String getRunCommand();
 
     protected ExecutionStatus resolveStatus(int exitCode, String stderr) {
         if (exitCode == 0) {
             return ExecutionStatus.ACCEPTED;
+        }
+        if (exitCode == EXIT_CODE_TIME_LIMIT_EXCEEDED) {
+            return ExecutionStatus.TIME_LIMIT_EXCEEDED;
         }
         if (exitCode == EXIT_CODE_COMPILATION_ERROR) {
             return ExecutionStatus.COMPILATION_ERROR;
@@ -131,6 +144,39 @@ public abstract class AbstractDockerExecutor implements CodeExecutor {
             return ExecutionStatus.MEMORY_LIMIT_EXCEEDED;
         }
         return ExecutionStatus.RUNTIME_ERROR;
+    }
+
+    private long resolveEffectiveTimeoutMs() {
+        long problemLimitMs = parsePositiveLong(System.getenv("CODEARENA_PROBLEM_TIME_LIMIT_MS"));
+        if (problemLimitMs <= 0) {
+            problemLimitMs = parsePositiveLong(System.getProperty("codearena.problem.time.limit.ms"));
+        }
+        if (problemLimitMs <= 0) {
+            problemLimitMs = GLOBAL_MAX_TIMEOUT_MS;
+        }
+        return Math.min(problemLimitMs, GLOBAL_MAX_TIMEOUT_MS);
+    }
+
+    private long parsePositiveLong(String rawValue) {
+        if (rawValue == null || rawValue.isBlank()) {
+            return -1L;
+        }
+        try {
+            long parsed = Long.parseLong(rawValue.trim());
+            return parsed > 0 ? parsed : -1L;
+        } catch (NumberFormatException ex) {
+            return -1L;
+        }
+    }
+
+    private String buildExecutionCommand(long timeoutSeconds) {
+        return getCompileCommand()
+                + " || exit " + EXIT_CODE_COMPILATION_ERROR + "; "
+                + "timeout -k 1s " + timeoutSeconds + "s sh -c '" + getRunCommand() + "'; "
+                + "rc=$?; "
+                + "if [ $rc -eq 124 ] || [ $rc -eq 137 ]; then exit " + EXIT_CODE_TIME_LIMIT_EXCEEDED + "; fi; "
+                + "if [ $rc -ne 0 ]; then exit " + EXIT_CODE_RUNTIME_ERROR + "; fi; "
+                + "exit 0";
     }
 
     private long elapsed(long startedAt) {
