@@ -22,8 +22,8 @@ public class Contest {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 200)
-    private String name;
+    @Column(name = "title", nullable = false, length = 200)
+    private String title;
 
     @Column(columnDefinition = "TEXT")
     private String description;
@@ -58,12 +58,21 @@ public class Contest {
         this.id = id;
     }
 
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    // Backward-compatible aliases while transitioning from "name" -> "title"
     public String getName() {
-        return name;
+        return getTitle();
     }
 
     public void setName(String name) {
-        this.name = name;
+        setTitle(name);
     }
 
     public String getDescription() {

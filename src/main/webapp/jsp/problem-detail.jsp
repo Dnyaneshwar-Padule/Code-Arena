@@ -128,6 +128,7 @@
                             <section class="editor-pane ps-lg-3 d-flex flex-column flex-grow-1">
                                 <form id="submitForm" method="post" action="${pageContext.request.contextPath}/submit" class="d-flex flex-column h-100">
                                     <input type="hidden" name="problemId" value="${problem.id}">
+                                    <input type="hidden" name="contestId" value="${contestId}">
 
                                     <div class="alert alert-info mb-3" role="alert">
                                         Read input from standard input (stdin) and print output to standard output (stdout).
@@ -303,6 +304,7 @@
         const failedExpectedOutput = document.getElementById('failedExpectedOutput');
         const failedActualOutput = document.getElementById('failedActualOutput');
         const problemIdInput = submitForm.querySelector('input[name="problemId"]');
+        const contestIdInput = submitForm.querySelector('input[name="contestId"]');
         const problemTabButton = document.getElementById('problem-tab');
         const submissionsTabButton = document.getElementById('submissions-tab');
         const problemPane = document.getElementById('problem-pane');
@@ -444,6 +446,9 @@ if __name__ == "__main__":
                     body.set('code', code);
                     body.set('language', language);
                     body.set('problemId', problemIdInput.value);
+                    if (contestIdInput && contestIdInput.value) {
+                        body.set('contestId', contestIdInput.value);
+                    }
 
                     const response = await fetch('${pageContext.request.contextPath}/submit', {
                         method: 'POST',

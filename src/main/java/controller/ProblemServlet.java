@@ -97,6 +97,7 @@ public class ProblemServlet extends HttpServlet {
             Problem problem = problemService.getProblemById(id);
             request.setAttribute("problem", problem);
             request.setAttribute("sampleTestCases", testCaseService.getSampleByProblemId(id));
+            request.setAttribute("contestId", parseLong(request.getParameter("contestId")));
             User loggedInUser = getLoggedInUser(request);
             if (loggedInUser != null) {
                 request.setAttribute("submissions", submissionService.getUserSubmissions(id, loggedInUser.getId()));

@@ -1,5 +1,6 @@
 package model;
 
+import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,6 +29,12 @@ public class ContestProblem {
     @JoinColumn(name = "problem_id", nullable = false)
     private Problem problem;
 
+    @Column(name = "problem_order", nullable = false)
+    private Integer order;
+
+    @Column(nullable = false)
+    private Integer points = 100;
+
     public ContestProblem() {
     }
 
@@ -53,5 +60,21 @@ public class ContestProblem {
 
     public void setProblem(Problem problem) {
         this.problem = problem;
+    }
+
+    public Integer getOrder() {
+        return order;
+    }
+
+    public void setOrder(Integer order) {
+        this.order = order;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
     }
 }

@@ -10,11 +10,13 @@ import exception.DaoException;
 import exception.ServiceException;
 import exception.ValidationException;
 import judge.JudgeResult;
+import model.Contest;
 import model.Language;
 import model.Problem;
 import model.Submission;
 import model.SubmissionStatus;
 import model.User;
+import service.ContestService;
 import service.JudgeService;
 import service.SubmissionService;
 
@@ -35,16 +37,23 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final UserDAO userDAO;
     private final ProblemDAO problemDAO;
     private final JudgeService judgeService;
+    private final ContestService contestService;
 
     public SubmissionServiceImpl() {
         this.submissionDAO = new SubmissionDAOImpl();
         this.userDAO = new UserDAOImpl();
         this.problemDAO = new ProblemDAOImpl();
         this.judgeService = new JudgeServiceImpl();
+        this.contestService = new ContestServiceImpl();
     }
 
     @Override
     public Submission submit(Long userId, Long problemId, String code, String language) {
+        return submit(userId, problemId, code, language, null);
+    }
+
+    @Override
+    public Submission submit(Long userId, Long problemId, String code, String language, Long contestId) {
         validateInput(userId, problemId, code, language);
 
         Submission savedSubmission = null;
@@ -59,9 +68,12 @@ public class SubmissionServiceImpl implements SubmissionService {
                 throw new ValidationException("Problem not found.");
             }
 
+            Contest contest = resolveContestIfPresent(contestId, problemId);
+
             Submission submission = new Submission();
             submission.setUser(user);
             submission.setProblem(problem);
+            submission.setContest(contest);
             submission.setCode(code.trim());
             submission.setLanguage(Language.fromValue(language).name());
             submission.setStatus(SubmissionStatus.PENDING);
@@ -77,7 +89,11 @@ public class SubmissionServiceImpl implements SubmissionService {
                     submission.getLanguage()
             );
 
-            return updateSubmissionWithJudgeResult(savedSubmission, judgeResult);
+            Submission updatedSubmission = updateSubmissionWithJudgeResult(savedSubmission, judgeResult);
+            if (updatedSubmission.getContest() != null && updatedSubmission.getStatus() == SubmissionStatus.ACCEPTED) {
+                contestService.applyAcceptedSubmissionScore(updatedSubmission.getId());
+            }
+            return updatedSubmission;
         } catch (ValidationException ex) {
             throw ex;
         } catch (DaoException ex) {
@@ -168,6 +184,20 @@ public class SubmissionServiceImpl implements SubmissionService {
         savedSubmission.setPassedCount(judgeResult.getPassedCount());
         savedSubmission.setTotalCount(judgeResult.getTotalCount());
         return submissionDAO.updateSubmission(savedSubmission);
+    }
+
+    private Contest resolveContestIfPresent(Long contestId, Long problemId) {
+        if (contestId == null) {
+            return null;
+        }
+        if (contestId <= 0) {
+            throw new ValidationException("Invalid contest id.");
+        }
+        Contest contest = contestService.getContestById(contestId);
+        if (!contestService.isProblemInContest(contestId, problemId)) {
+            throw new ValidationException("Problem is not part of this contest.");
+        }
+        return contest;
     }
 
     private void markSubmissionAsError(Submission savedSubmission) {

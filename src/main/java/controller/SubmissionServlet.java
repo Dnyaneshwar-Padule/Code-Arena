@@ -39,10 +39,11 @@ public class SubmissionServlet extends HttpServlet {
 
         try {
             Long problemId = parseLong(getTrimmedParameter(request, "problemId"));
+            Long contestId = parseOptionalLong(getTrimmedParameter(request, "contestId"));
             String code = getTrimmedParameter(request, "code");
             String language = getTrimmedParameter(request, "language");
 
-            Submission submission = submissionService.submit(loggedInUser.getId(), problemId, code, language);
+            Submission submission = submissionService.submit(loggedInUser.getId(), problemId, code, language, contestId);
             String json = "{"
                     + "\"status\":\"" + escapeJson(String.valueOf(submission.getStatus())) + "\","
                     + "\"executionTime\":" + safeNumber(submission.getExecutionTime()) + ","
@@ -118,6 +119,17 @@ public class SubmissionServlet extends HttpServlet {
             return Long.valueOf(rawValue);
         } catch (NumberFormatException ex) {
             throw new ValidationException("Invalid problem id.");
+        }
+    }
+
+    private Long parseOptionalLong(String rawValue) {
+        if (rawValue == null || rawValue.isBlank()) {
+            return null;
+        }
+        try {
+            return Long.valueOf(rawValue);
+        } catch (NumberFormatException ex) {
+            throw new ValidationException("Invalid contest id.");
         }
     }
 
