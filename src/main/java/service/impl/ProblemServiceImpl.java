@@ -53,6 +53,16 @@ public class ProblemServiceImpl implements ProblemService {
     }
 
     @Override
+    public long getTotalProblemCount() {
+        try {
+            return problemDAO.getTotalProblemCount();
+        } catch (DaoException ex) {
+            LOGGER.log(Level.SEVERE, "Failed to get total problem count", ex);
+            throw new ServiceException("Unable to load problem count right now.", ex);
+        }
+    }
+
+    @Override
     public long getTotalPages(int size) {
         if (size <= 0) {
             throw new ValidationException("Invalid page size.");

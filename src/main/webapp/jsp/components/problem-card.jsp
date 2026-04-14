@@ -1,6 +1,6 @@
 <%@ taglib prefix="c" uri="jakarta.tags.core" %>
 
-<article class="card h-100 border-0 shadow-sm">
+<article class="card h-100 border-0 shadow-sm problem-card">
     <div class="card-body d-flex flex-column">
         <div class="d-flex align-items-start justify-content-between mb-2">
             <h3 class="h5 mb-0">${problem.title}</h3>

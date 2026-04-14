@@ -43,8 +43,9 @@ public class ProblemServlet extends HttpServlet {
     private void listProblems(HttpServletRequest request, HttpServletResponse response)
             throws ServletException, IOException {
         int page = parsePositiveIntOrDefault(request.getParameter("page"), 1);
-        int size = parsePositiveIntOrDefault(request.getParameter("size"), 10);
+        int size = parsePositiveIntOrDefault(request.getParameter("size"), 12);
         try {
+            long totalCount = problemService.getTotalProblemCount();
             long totalPages = problemService.getTotalPages(size);
             if (totalPages > 0 && page > totalPages) {
                 page = (int) totalPages;
@@ -52,6 +53,7 @@ public class ProblemServlet extends HttpServlet {
 
             List<Problem> problems = problemService.getProblems(page, size);
             request.setAttribute("problems", problems);
+            request.setAttribute("totalCount", totalCount);
             request.setAttribute("currentPage", page);
             request.setAttribute("totalPages", totalPages);
             request.setAttribute("size", size);

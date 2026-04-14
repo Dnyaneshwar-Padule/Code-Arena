@@ -1,27 +1,11 @@
-/* Base styling placeholder for the JSP views */
-body {
-    font-family: Arial, sans-serif;
-    margin: 24px;
-}
+/* Shared UI utility styles */
 
-/*
 .description-clamp-2 {
     display: -webkit-box;
-    -webkit-box-orient: vertical;
     -webkit-line-clamp: 2;
+    -webkit-box-orient: vertical;
     overflow: hidden;
     text-overflow: ellipsis;
     line-height: 1.5;
     min-height: 3em;
-}
-*/
-
-.description-clamp-2 {
-    display: -webkit-box;
-    -webkit-line-clamp: 2;   /* number of lines */
-    -webkit-box-orient: vertical;
-    overflow: hidden;
-
-    /* optional but recommended */
-    text-overflow: ellipsis;
 }

@@ -10,7 +10,7 @@
                 <h1 class="h2 fw-bold mb-1">Problem Set</h1>
                 <p class="text-secondary mb-0">Practice curated coding challenges by difficulty.</p>
             </div>
-            <span class="badge text-bg-primary fs-6 mt-3 mt-md-0">${empty problems ? 0 : problems.size()} Problems</span>
+            <span class="badge text-bg-primary fs-6 mt-3 mt-md-0">${empty totalCount ? 0 : totalCount} Problems</span>
         </div>
 
         <c:if test="${not empty error}">
@@ -29,7 +29,7 @@
             <c:otherwise>
                 <div class="row g-4">
                     <c:forEach var="problem" items="${problems}">
-                        <div class="col-12 col-md-6 col-lg-4">
+                        <div class="col-12 col-md-4">
                             <c:set var="showAdminActions" value="${false}" />
                             <%@ include file="components/problem-card.jsp" %>
                         </div>

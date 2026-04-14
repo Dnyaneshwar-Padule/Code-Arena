@@ -13,6 +13,8 @@ public interface ProblemService {
 
     List<Problem> getProblems(int page, int size);
 
+    long getTotalProblemCount();
+
     long getTotalPages(int size);
 
     Problem getProblemById(Long id);
