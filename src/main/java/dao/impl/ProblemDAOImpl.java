@@ -3,6 +3,8 @@ package dao.impl;
 import dao.ProblemDAO;
 import exception.DaoException;
 import model.Problem;
+
+import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.Transaction;
 import util.HibernateUtil;
@@ -62,6 +64,19 @@ public class ProblemDAOImpl implements ProblemDAO {
         }
     }
 
+    @Override
+    public Problem getProblemById(Long id, Boolean shouldInitialize) {
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            Problem problem = session.get(Problem.class, id);
+            if(shouldInitialize)
+            		Hibernate.initialize(problem);
+            return problem;
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Error fetching problem by id", ex);
+            throw new DaoException("Error fetching problem", ex);
+        }
+    }
+    
     @Override
     public Problem createProblem(Problem problem) {
         Transaction transaction = null;

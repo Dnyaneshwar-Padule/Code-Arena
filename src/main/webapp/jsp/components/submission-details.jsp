@@ -1,5 +1,5 @@
-<section class="submission-split-bottom pe-lg-3 mt-4">
-    <h3 class="h6 fw-semibold mt-2 mb-3">Submission Details</h3>
+<section class="submission-split-bottom pe-lg-3">
+    <h3 class="h6 fw-semibold mb-3">Submission Details</h3>
     <div id="submissionDetailsLoading" class="alert alert-info mb-3 d-none">Loading submission details...</div>
     <div id="submissionDetailsEmpty" class="alert alert-secondary mb-3">Select a submission to view details.</div>
     <div id="submissionDetailsCard" class="card d-none">

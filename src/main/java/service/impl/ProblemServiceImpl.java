@@ -222,6 +222,7 @@ public class ProblemServiceImpl implements ProblemService {
         problem.setTitle(normalizedTitle);
         problem.setDescription(normalizedDescription);
         problem.setDifficulty(parsedDifficulty);
+        problem.setPoints(getPointsByDifficulty(parsedDifficulty));
         problem.setTimeLimit(timeLimit);
         problem.setMemoryLimit(memoryLimit);
         problem.setInputFormat(normalizeOptionalText(inputFormat));
@@ -235,5 +236,16 @@ public class ProblemServiceImpl implements ProblemService {
         }
         String trimmed = value.trim();
         return trimmed.isEmpty() ? null : trimmed;
+    }
+
+    private Integer getPointsByDifficulty(ProblemDifficulty difficulty) {
+        if (difficulty == null) {
+            return 5;
+        }
+        return switch (difficulty) {
+            case EASY -> 5;
+            case MEDIUM -> 10;
+            case HARD -> 15;
+        };
     }
 }

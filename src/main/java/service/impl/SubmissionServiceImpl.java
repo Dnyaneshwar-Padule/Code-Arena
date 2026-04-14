@@ -2,9 +2,11 @@ package service.impl;
 
 import dao.ProblemDAO;
 import dao.SubmissionDAO;
+import dao.UserProblemSolvedDAO;
 import dao.UserDAO;
 import dao.impl.ProblemDAOImpl;
 import dao.impl.SubmissionDAOImpl;
+import dao.impl.UserProblemSolvedDAOImpl;
 import dao.impl.UserDAOImpl;
 import exception.DaoException;
 import exception.ServiceException;
@@ -16,10 +18,13 @@ import model.Problem;
 import model.Submission;
 import model.SubmissionStatus;
 import model.User;
+import model.UserProblemSolved;
+import model.UserProblemSolvedId;
 import service.ContestService;
 import service.JudgeService;
 import service.SubmissionService;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
@@ -36,6 +41,7 @@ public class SubmissionServiceImpl implements SubmissionService {
     private final SubmissionDAO submissionDAO;
     private final UserDAO userDAO;
     private final ProblemDAO problemDAO;
+    private final UserProblemSolvedDAO userProblemSolvedDAO;
     private final JudgeService judgeService;
     private final ContestService contestService;
 
@@ -43,6 +49,7 @@ public class SubmissionServiceImpl implements SubmissionService {
         this.submissionDAO = new SubmissionDAOImpl();
         this.userDAO = new UserDAOImpl();
         this.problemDAO = new ProblemDAOImpl();
+        this.userProblemSolvedDAO = new UserProblemSolvedDAOImpl();
         this.judgeService = new JudgeServiceImpl();
         this.contestService = new ContestServiceImpl();
     }
@@ -63,11 +70,13 @@ public class SubmissionServiceImpl implements SubmissionService {
                 throw new ValidationException("User not found.");
             }
 
-            Problem problem = problemDAO.getProblemById(problemId);
+            Problem problem = problemDAO.getProblemById(problemId, true);
             if (problem == null) {
                 throw new ValidationException("Problem not found.");
             }
 
+            //Hibernate.initialize(problem);
+            
             Contest contest = resolveContestIfPresent(contestId, problemId);
 
             Submission submission = new Submission();
@@ -92,6 +101,8 @@ public class SubmissionServiceImpl implements SubmissionService {
             Submission updatedSubmission = updateSubmissionWithJudgeResult(savedSubmission, judgeResult);
             if (updatedSubmission.getContest() != null && updatedSubmission.getStatus() == SubmissionStatus.ACCEPTED) {
                 contestService.applyAcceptedSubmissionScore(updatedSubmission.getId());
+            } else if (updatedSubmission.getContest() == null && updatedSubmission.getStatus() == SubmissionStatus.ACCEPTED) {
+                awardPracticePointsIfFirstAccepted(user, problem);
             }
             return updatedSubmission;
         } catch (ValidationException ex) {
@@ -198,6 +209,27 @@ public class SubmissionServiceImpl implements SubmissionService {
             throw new ValidationException("Problem is not part of this contest.");
         }
         return contest;
+    }
+
+    private void awardPracticePointsIfFirstAccepted(User user, Problem problem) {
+        Long userId = user.getId();
+        Long problemId = problem.getId();
+        boolean alreadySolved = userProblemSolvedDAO.exists(userId, problemId);
+        if (alreadySolved) {
+            return;
+        }
+        Integer points = problem.getPoints();
+        int safePoints = points == null ? 0 : Math.max(0, points);
+        UserProblemSolved solved = new UserProblemSolved();
+        solved.setId(new UserProblemSolvedId(userId, problemId));
+        solved.setUser(user);
+        solved.setProblem(problem);   // problem is detached !
+        solved.setPointsAwarded(safePoints);
+        solved.setSolvedAt(LocalDateTime.now());
+        userProblemSolvedDAO.save(solved);
+        LOGGER.info("Awarded " + safePoints + " points to user " + userId + " for problem " + problemId);
+        boolean debugExists = userProblemSolvedDAO.exists(userId, problemId);
+        LOGGER.info("Debug: user_problem_solved row present for user " + userId + ", problem " + problemId + " = " + debugExists);
     }
 
     private void markSubmissionAsError(Submission savedSubmission) {

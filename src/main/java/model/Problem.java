@@ -32,6 +32,9 @@ public class Problem {
     @Column(nullable = false, length = 20)
     private ProblemDifficulty difficulty = ProblemDifficulty.EASY;
 
+    @Column(nullable = false)
+    private Integer points = 5;
+
     @Column(name = "time_limit", nullable = false)
     private Integer timeLimit;
 
@@ -100,6 +103,14 @@ public class Problem {
 
     public void setDifficulty(ProblemDifficulty difficulty) {
         this.difficulty = difficulty;
+    }
+
+    public Integer getPoints() {
+        return points;
+    }
+
+    public void setPoints(Integer points) {
+        this.points = points;
     }
 
     public Integer getTimeLimit() {

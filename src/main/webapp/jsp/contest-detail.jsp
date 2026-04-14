@@ -17,7 +17,7 @@
                     <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                         <h1 class="h3 mb-0">${contest.title}</h1>
                         <a class="btn btn-outline-primary btn-sm"
-                           href="${pageContext.request.contextPath}/contest/leaderboard?contestId=${contest.id}">
+                           href="${pageContext.request.contextPath}/leaderboard/contest?contestId=${contest.id}">
                             Leaderboard
                         </a>
                     </div>

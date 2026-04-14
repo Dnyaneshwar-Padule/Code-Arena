@@ -16,6 +16,8 @@ public interface ProblemDAO {
     long getTotalProblemCount();
 
     Problem getProblemById(Long id);
+    
+    Problem getProblemById(Long id, Boolean shouldInitialize);
 
     Problem createProblem(Problem problem);
 

@@ -18,6 +18,7 @@ CREATE TABLE IF NOT EXISTS problems (
     id BIGSERIAL PRIMARY KEY,
     title VARCHAR(200) NOT NULL,
     description TEXT,
+    points INT NOT NULL,
     difficulty VARCHAR(20) NOT NULL DEFAULT 'EASY',
     time_limit INT NOT NULL,
     memory_limit INT NOT NULL,

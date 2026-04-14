@@ -8,7 +8,7 @@
     <div id="submissionsLoading" class="alert alert-info mb-3 d-none">Loading submissions...</div>
     <div id="submissionsError" class="alert alert-danger mb-3 d-none"></div>
     <div id="submissionsEmptyState" class="alert alert-secondary mb-0 d-none">No submissions yet for this problem.</div>
-    <div class="table-responsive submission-table-wrap">
+    <div class="submission-table-wrap">
         <table class="table table-striped align-middle mb-0" id="submissionsTable">
             <thead class="table-light">
             <tr>

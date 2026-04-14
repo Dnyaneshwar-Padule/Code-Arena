@@ -112,7 +112,7 @@
                                         <div class="submission-history">
                                             <%@ include file="components/submission-table.jsp" %>
                                         </div>
-                                        <div class="submission-details mt-2">
+                                        <div class="submission-details">
                                             <%@ include file="components/submission-details.jsp" %>
                                         </div>
                                     </div>
@@ -209,6 +209,7 @@
         </c:if>
     </section>
 </main>
+
 
 <style>
     .tab-content {

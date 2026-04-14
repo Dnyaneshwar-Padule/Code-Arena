@@ -23,7 +23,7 @@ import service.ContestService;
 import service.impl.ContestServiceImpl;
 import util.ErrorHandlerUtil;
 
-@WebServlet(name = "ContestServlet", urlPatterns = {"/contests", "/contest", "/contest/leaderboard"})
+@WebServlet(name = "ContestServlet", urlPatterns = {"/contests", "/contest"})
 public class ContestServlet extends HttpServlet {
 
     private transient ContestService contestService;
@@ -38,10 +38,6 @@ public class ContestServlet extends HttpServlet {
         String path = request.getServletPath();
         if ("/contests".equals(path)) {
             showContestList(request, response);
-            return;
-        }
-        if ("/contest/leaderboard".equals(path)) {
-            showLeaderboard(request, response);
             return;
         }
         showContestDetail(request, response);
@@ -89,39 +85,6 @@ public class ContestServlet extends HttpServlet {
                     response,
                     ex,
                     "Unable to load contest details right now.",
-                    "/jsp/contest-list.jsp"
-            );
-        }
-    }
-
-    private void showLeaderboard(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-        try {
-            Long contestId = parseLong(request.getParameter("contestId"), "Invalid contest id.");
-            Contest contest = contestService.getContestById(contestId);
-            List<ContestLeaderboardEntry> entries = contestService.getLeaderboard(contestId);
-            ContestLeaderboardEntry currentUserEntry = null;
-            User loggedInUser = getLoggedInUser(request);
-            if (loggedInUser != null && !entries.isEmpty()) {
-                for (int i = 0; i < entries.size(); i++) {
-                    ContestLeaderboardEntry entry = entries.get(i);
-                    if (entry.getUserId() != null && entry.getUserId().equals(loggedInUser.getId())) {
-                        currentUserEntry = entry;
-                        entries.remove(i);
-                        break;
-                    }
-                }
-            }
-
-            request.setAttribute("contest", contest);
-            request.setAttribute("currentUserEntry", currentUserEntry);
-            request.setAttribute("leaderboardEntries", entries);
-            request.getRequestDispatcher("/jsp/contest-leaderboard.jsp").forward(request, response);
-        } catch (ServiceException ex) {
-            ErrorHandlerUtil.handleException(
-                    request,
-                    response,
-                    ex,
-                    "Unable to load leaderboard right now.",
                     "/jsp/contest-list.jsp"
             );
         }

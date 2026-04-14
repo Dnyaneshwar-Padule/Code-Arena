@@ -7,8 +7,8 @@
     <section class="container">
         <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-4">
             <div>
-                <h1 class="h3 fw-bold mb-1">Leaderboard</h1>
-                <p class="text-secondary mb-0">Top rated users on CP Portal.</p>
+                <h1 class="h3 fw-bold mb-1">Practice Leaderboard</h1>
+                <p class="text-secondary mb-0">Top users by solved practice points.</p>
             </div>
         </div>
 
@@ -17,7 +17,7 @@
         </c:if>
 
         <c:choose>
-            <c:when test="${empty leaderboardUsers}">
+            <c:when test="${empty currentUserEntry and empty leaderboardEntries}">
                 <div class="alert alert-secondary mb-0">No leaderboard data available.</div>
             </c:when>
             <c:otherwise>
@@ -27,20 +27,25 @@
                         <tr>
                             <th>Rank</th>
                             <th>User</th>
-                            <th>Rating</th>
+                            <th>Solved</th>
+                            <th>Points</th>
                         </tr>
                         </thead>
                         <tbody>
-                        <c:forEach var="user" items="${leaderboardUsers}" varStatus="status">
-                            <tr class="${currentUserId == user.id ? 'table-primary' : ''}">
-                                <td>${status.index + 1}</td>
-                                <td>
-                                    ${user.username}
-                                    <c:if test="${currentUserId == user.id}">
-                                        <span class="badge text-bg-primary ms-2">You</span>
-                                    </c:if>
-                                </td>
-                                <td>${user.rating}</td>
+                        <c:if test="${not empty currentUserEntry}">
+                            <tr class="table-primary">
+                                <td>${currentUserEntry.rank}</td>
+                                <td>You (${currentUserEntry.username})</td>
+                                <td>${currentUserEntry.solvedCount}</td>
+                                <td>${currentUserEntry.points}</td>
+                            </tr>
+                        </c:if>
+                        <c:forEach var="entry" items="${leaderboardEntries}">
+                            <tr>
+                                <td>${entry.rank}</td>
+                                <td>${entry.username}</td>
+                                <td>${entry.solvedCount}</td>
+                                <td>${entry.points}</td>
                             </tr>
                         </c:forEach>
                         </tbody>

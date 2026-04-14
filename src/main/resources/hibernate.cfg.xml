@@ -22,6 +22,7 @@
         <mapping class="model.Contest"/>
         <mapping class="model.ContestProblem"/>
         <mapping class="model.UserContestProblem"/>
+        <mapping class="model.UserProblemSolved"/>
         <mapping class="model.ContestRegistration"/>
         <mapping class="model.Leaderboard"/>
     </session-factory>
