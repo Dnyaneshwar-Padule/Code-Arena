@@ -4,19 +4,19 @@
 <c:set var="pageTitle" value="Problem Detail | CP Portal" scope="request"/>
 <%@ include file="components/header.jsp" %>
 
-<main class="flex-grow-1 py-5 bg-light">
-    <section class="container">
-        <a class="btn btn-outline-secondary btn-sm mb-4" href="${pageContext.request.contextPath}/problems">Back to Problems</a>
+<main class="flex-grow-1 d-flex flex-column py-4 bg-light">
+    <section class="container-fluid flex-grow-1 d-flex flex-column px-3 px-md-4">
+        <a class="btn btn-outline-secondary btn-sm mb-4 align-self-start" href="${pageContext.request.contextPath}/problems">Back to Problems</a>
 
         <c:if test="${not empty error}">
             <div class="alert alert-danger" role="alert">${error}</div>
         </c:if>
 
         <c:if test="${not empty problem}">
-            <article class="card border-0 shadow-sm">
-                <div class="card-body p-3 p-md-4">
-                    <div class="row g-4 problem-detail-layout">
-                        <div class="col-12 col-lg-6 problem-detail-column">
+            <div class="row g-4 flex-grow-1">
+                <div class="col-12 col-lg-6 d-flex flex-column">
+                    <article class="card border-0 shadow-sm flex-grow-1 d-flex flex-column">
+                        <div class="card-body p-3 p-md-4 d-flex flex-column flex-grow-1">
                             <ul class="nav nav-tabs mb-3" role="tablist">
                                 <li class="nav-item" role="presentation">
                                     <button class="nav-link ${activeTab == 'submissions' ? '' : 'active'}"
@@ -40,11 +40,11 @@
                                 </li>
                             </ul>
 
-                            <div class="tab-content">
+                                <div class="tab-content flex-grow-1 d-flex flex-column">
                                 <div class="tab-pane fade ${activeTab == 'submissions' ? '' : 'show active'}"
                                      id="problem-pane"
                                      role="tabpanel">
-                                    <section class="problem-pane pe-lg-3">
+                                    <section class="problem-pane pe-lg-3 h-100 overflow-auto">
                                 <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
                                     <h1 class="h3 fw-bold mb-0">${problem.title}</h1>
                                     <span class="badge text-bg-primary">${problem.difficulty}</span>
@@ -108,14 +108,24 @@
                                 <div class="tab-pane fade ${activeTab == 'submissions' ? 'show active' : ''}"
                                      id="submissions-pane"
                                      role="tabpanel">
-                                    <%@ include file="components/submission-table.jsp" %>
-                                    <%@ include file="components/submission-details.jsp" %>
+                                    <div class="submission-container flex-grow-1 d-flex flex-column">
+                                        <div class="submission-history">
+                                            <%@ include file="components/submission-table.jsp" %>
+                                        </div>
+                                        <div class="submission-details">
+                                            <%@ include file="components/submission-details.jsp" %>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </div>
+                    </article>
+                </div>
 
-                        <div class="col-12 col-lg-6 editor-column-divider problem-detail-column">
-                            <section class="editor-pane ps-lg-3 d-flex flex-column">
+                <div class="col-12 col-lg-6 d-flex flex-column">
+                    <article class="card border-0 shadow-sm flex-grow-1 d-flex flex-column">
+                        <div class="card-body p-3 p-md-4 d-flex flex-column flex-grow-1 editor-column-divider">
+                            <section class="editor-pane ps-lg-3 d-flex flex-column flex-grow-1">
                                 <form id="submitForm" method="post" action="${pageContext.request.contextPath}/submit" class="d-flex flex-column h-100">
                                     <input type="hidden" name="problemId" value="${problem.id}">
 
@@ -192,17 +202,49 @@
                                 </div>
                             </section>
                         </div>
-                    </div>
+                    </article>
                 </div>
-            </article>
+            </div>
         </c:if>
     </section>
 </main>
 
 <style>
+    .tab-content {
+        display: flex;
+        flex-direction: column;
+    }
+
+    #problem-pane,
+    #submissions-pane {
+        flex-grow: 1;
+    }
+
+    #submissions-pane.show.active {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .submission-container {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    .submission-history,
+    .submission-details {
+        flex-grow: 1;
+    }
+
+    .submission-history {
+        overflow: auto;
+    }
+
+    .submission-details {
+        overflow: auto;
+    }
+
     .submission-split-top {
-        min-height: 260px;
-        max-height: 320px;
         display: flex;
         flex-direction: column;
     }
@@ -217,16 +259,14 @@
     }
 
     .submission-split-bottom {
-        min-height: 260px;
-        max-height: 340px;
         display: flex;
         flex-direction: column;
     }
 
     .submission-details-body {
+        flex: 1;
         overflow-y: auto;
         overflow-x: auto;
-        max-height: 280px;
     }
 
     .submission-pre {
