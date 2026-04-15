@@ -1,6 +1,10 @@
 # Compiled class file
 *.class
 
+
+mail-api.properties
+hibernate.cfg.xml
+
 # Log file
 *.log
 
@@ -37,6 +41,3 @@ replay_pid*
 /Servers
 /target/
 
-
-mail-api.properties
-hibernate.cfg.xml
