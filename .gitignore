@@ -39,5 +39,4 @@ replay_pid*
 
 
 *.properties
-*.log
 *.cfg.xml
