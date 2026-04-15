@@ -36,3 +36,8 @@ replay_pid*
 /Server
 /Servers
 /target/
+
+
+*.properties
+*.log
+*.cfg.xml

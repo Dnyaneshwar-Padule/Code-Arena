@@ -44,64 +44,71 @@
                                 <div class="tab-pane fade ${activeTab == 'submissions' ? '' : 'show active'}"
                                      id="problem-pane"
                                      role="tabpanel">
-                                    <section class="problem-pane pe-lg-3 h-100 overflow-auto">
-                                <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
-                                    <h1 class="h3 fw-bold mb-0">${problem.title}</h1>
-                                    <span class="badge text-bg-primary">${problem.difficulty}</span>
-                                </div>
-                                <div class="row g-2 mb-3">
-                                    <div class="col-6">
-                                        <div class="border rounded-3 p-2 bg-white">
-                                            <small class="fw-semibold d-block">Time Limit</small>
-                                            <span class="text-secondary">${problem.timeLimit} ms</span>
+                                    <!-- 
+                                        <section class="problem-pane pe-lg-3 h-100 overflow-auto d-flex flex-column">
+                                    -->
+                                    <section class="problem-pane pe-lg-3 h-100 d-flex flex-column">        
+                                        <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-2 mb-3">
+                                            <h1 class="h3 fw-bold mb-0">${problem.title}</h1>
+                                            <span class="badge text-bg-primary">${problem.difficulty}</span>
                                         </div>
-                                    </div>
-                                    <div class="col-6">
-                                        <div class="border rounded-3 p-2 bg-white">
-                                            <small class="fw-semibold d-block">Memory Limit</small>
-                                            <span class="text-secondary">${problem.memoryLimit} KB</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <section class="mb-4">
-                                    <h2 class="h6 fw-semibold">Description</h2>
-                                    <p class="text-secondary mb-0 section-pre">${problem.description}</p>
-                                </section>
-                                <section class="mb-4">
-                                    <h2 class="h6 fw-semibold">Input Format</h2>
-                                    <pre class="bg-light border rounded p-3 mb-0 section-pre">${not empty problem.inputFormat ? fn:trim(problem.inputFormat) : 'Not specified.'}</pre>
-                                </section>
-                                <section class="mb-4">
-                                    <h2 class="h6 fw-semibold">Output Format</h2>
-                                    <pre class="bg-light border rounded p-3 mb-0 section-pre">${not empty problem.outputFormat ? fn:trim(problem.outputFormat) : 'Not specified.'}</pre>
-                                </section>
-                                <section class="mb-4">
-                                    <h2 class="h6 fw-semibold">Constraints</h2>
-                                    <pre class="bg-light border rounded p-3 mb-0 section-pre">${not empty problem.constraints ? fn:trim(problem.constraints) : 'Not specified.'}</pre>
-                                </section>
-                                <section>
-                                    <h2 class="h5 fw-semibold mb-3">Sample Test Cases</h2>
-                                    <c:choose>
-                                        <c:when test="${empty sampleTestCases}">
-                                            <p class="text-secondary mb-0">No sample test cases available for this problem.</p>
-                                        </c:when>
-                                        <c:otherwise>
-                                            <div class="row g-3">
-                                                <c:forEach var="testCase" items="${sampleTestCases}" varStatus="status">
-                                                    <div class="col-12">
-                                                        <div class="border rounded-3 p-3 bg-white">
-                                                            <h3 class="h6 fw-bold mb-3">Sample ${status.index + 1}</h3>
-                                                            <p class="fw-semibold mb-1">Input</p>
-                                                            <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${testCase.input}</code></pre>
-                                                            <p class="fw-semibold mb-1">Output</p>
-                                                            <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${testCase.expectedOutput}</code></pre>
-                                                        </div>
-                                                    </div>
-                                                </c:forEach>
+                                        <div class="row g-2 mb-3">
+                                            <div class="col-6">
+                                                <div class="border rounded-3 p-2 bg-white">
+                                                    <small class="fw-semibold d-block">Time Limit</small>
+                                                    <span class="text-secondary">${problem.timeLimit} ms</span>
+                                                </div>
                                             </div>
-                                        </c:otherwise>
-                                    </c:choose>
-                                </section>
+                                            <div class="col-6">
+                                                <div class="border rounded-3 p-2 bg-white">
+                                                    <small class="fw-semibold d-block">Memory Limit</small>
+                                                    <span class="text-secondary">${problem.memoryLimit} KB</span>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <section class="mb-4">
+                                            <h2 class="h6 fw-semibold">Description</h2>
+                                            <p class="text-secondary mb-0 section-pre">${problem.description}</p>
+                                        </section>
+                                        <section class="mb-4">
+                                            <h2 class="h6 fw-semibold">Input Format</h2>
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">${not empty problem.inputFormat ? fn:trim(problem.inputFormat) : 'Not specified.'}</pre>
+                                        </section>
+                                        <section class="mb-4">
+                                            <h2 class="h6 fw-semibold">Output Format</h2>
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">${not empty problem.outputFormat ? fn:trim(problem.outputFormat) : 'Not specified.'}</pre>
+                                        </section>
+                                        <section class="mb-4">
+                                            <h2 class="h6 fw-semibold">Constraints</h2>
+                                            <pre class="bg-light border rounded p-3 mb-0 section-pre">${not empty problem.constraints ? fn:trim(problem.constraints) : 'Not specified.'}</pre>
+                                        </section>
+                                        <section class="sample-testcases-section d-flex flex-column">
+                                            <h2 class="h5 fw-semibold mb-3 flex-shrink-0">Sample Test Cases</h2>
+
+                                            <div class="sample-testcases-scroll">
+                                                <c:choose>
+                                                    <c:when test="${empty sampleTestCases}">
+                                                        <p class="text-secondary mb-0">No sample test cases available for this problem.</p>
+                                                    </c:when>
+
+                                                    <c:otherwise>
+                                                        <div class="d-flex flex-column gap-3">
+                                                            <c:forEach var="testCase" items="${sampleTestCases}" varStatus="status">
+                                                                <div class="border rounded-3 p-3 bg-white">
+                                                                    <h3 class="h6 fw-bold mb-3">Sample ${status.index + 1}</h3>
+
+                                                                    <p class="fw-semibold mb-1">Input</p>
+                                                                    <pre class="bg-light border rounded p-3 mb-3 section-pre"><code>${testCase.input}</code></pre>
+
+                                                                    <p class="fw-semibold mb-1">Output</p>
+                                                                    <pre class="bg-light border rounded p-3 mb-0 section-pre"><code>${testCase.expectedOutput}</code></pre>
+                                                                </div>
+                                                            </c:forEach>
+                                                        </div>
+                                                    </c:otherwise>
+                                                </c:choose>
+                                            </div>
+                                        </section>
                                     </section>
                                 </div>
 
@@ -218,6 +225,18 @@
         min-height: 0;
     }
 
+    #problem-pane.show.active,
+    .problem-pane {
+        display: flex;
+        flex-direction: column;
+        min-height: 0;
+        height: 100%;
+    }
+
+    .problem-pane {
+        overflow: hidden !important;
+    }
+
     #problem-pane,
     #submissions-pane {
         flex-grow: 1;
@@ -299,6 +318,54 @@
     .submission-row {
         cursor: pointer;
     }
+
+    /*
+    .sample-testcases-section {
+        display: flex;
+        flex-direction: column;
+        flex: 1;
+        min-height: 0;
+    }
+    */
+    .sample-testcases-section {
+        display: flex;
+        flex-direction: column;
+        flex: 1 1 0;
+        min-height: 0;
+        overflow: hidden;
+    }
+
+    /* .sample-testcases-scroll {
+        flex: 0 0 50%;
+        min-height: 0;
+        max-height: 50%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 0.25rem;
+    } */
+
+    .sample-testcases-scroll {
+        flex: 1 1 80%;
+        min-height: 0;
+        max-height: 80%;
+        overflow-y: auto;
+        overflow-x: hidden;
+        padding-right: 0.25rem;
+    }
+
+    /*
+    
+    .sample-testcases-section {
+        flex: 0 0 50%;
+        max-height: 50%;
+        min-height: 0;
+    }
+    
+    .sample-testcases-scroll {
+        flex: 1 1 auto;
+        min-height: 0;
+    }
+    */
 </style>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
