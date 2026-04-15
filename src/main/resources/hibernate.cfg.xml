@@ -25,5 +25,6 @@
         <mapping class="model.UserProblemSolved"/>
         <mapping class="model.ContestRegistration"/>
         <mapping class="model.Leaderboard"/>
+        <mapping class="model.EmailVerification"/>
     </session-factory>
 </hibernate-configuration>

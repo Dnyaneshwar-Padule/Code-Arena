@@ -17,6 +17,8 @@ public interface UserService {
     User getUserByEmail(String email);
 
     User getUserByUsername(String username);
+
+    void resetPassword(String email, String newPassword);
     
     User createAdmin(String username, String email, String password);
 }

@@ -139,6 +139,41 @@ public class UserServiceImpl implements UserService {
         }
     }
 
+    @Override
+    public void resetPassword(String email, String newPassword) {
+        try {
+            String normalizedEmail = email == null ? "" : email.trim().toLowerCase();
+            String normalizedPassword = newPassword == null ? "" : newPassword.trim();
+
+            if (normalizedEmail.isEmpty() || normalizedPassword.isEmpty()) {
+                throw new ValidationException("Email and new password are required.");
+            }
+            if (normalizedPassword.length() < 8) {
+                throw new ValidationException("Password must be at least 8 characters.");
+            }
+
+            User existingUser = userDAO.findByEmail(normalizedEmail);
+            if (existingUser == null) {
+                throw new ValidationException("Invalid password reset request.");
+            }
+
+            String salt = HashUtil.generateSalt();
+            String passwordHash = HashUtil.hashPassword(normalizedPassword, salt);
+            existingUser.setSalt(salt);
+            existingUser.setPasswordHash(passwordHash);
+
+            userDAO.updateUser(existingUser);
+        } catch (ValidationException ex) {
+            throw ex;
+        } catch (DaoException ex) {
+            LOGGER.log(Level.SEVERE, "Reset password failed at DAO layer", ex);
+            throw new ServiceException("Unable to reset password right now.", ex);
+        } catch (Exception ex) {
+            LOGGER.log(Level.SEVERE, "Unexpected reset password error", ex);
+            throw new ServiceException("Unable to reset password right now.", ex);
+        }
+    }
+
 	@Override
 	public User createAdmin(String username, String email, String password) {
 		User admin = new User();

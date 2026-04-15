@@ -18,6 +18,9 @@
                         <c:if test="${not empty error}">
                             <div class="alert alert-danger border-0 shadow-sm rounded-3" role="alert">${error}</div>
                         </c:if>
+                        <c:if test="${param.reset eq 'success'}">
+                            <div class="alert alert-success border-0 shadow-sm rounded-3" role="alert">Password reset successful. Please login.</div>
+                        </c:if>
 
                         <form method="post" action="${pageContext.request.contextPath}/login">
                             <div class="mb-3">
@@ -29,6 +32,9 @@
                                 <label class="form-label fw-semibold" for="password">Password</label>
                                 <input class="form-control form-control-lg rounded-3 border-2" id="password" name="password"
                                        type="password" placeholder="Enter your password" required>
+                                <div class="text-end mt-2">
+                                    <a class="small text-decoration-none" href="${pageContext.request.contextPath}/forgot-password">Forgot password?</a>
+                                </div>
                             </div>
                             <button class="btn btn-primary btn-lg w-100 rounded-3 shadow-sm" type="submit">Login</button>
                         </form>

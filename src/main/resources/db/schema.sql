@@ -106,6 +106,18 @@ CREATE TABLE IF NOT EXISTS user_contest_problem (
     CONSTRAINT pk_user_contest_problem PRIMARY KEY (user_id, contest_id, problem_id)
 );
 
+CREATE TABLE IF NOT EXISTS email_verifications (
+    id BIGSERIAL PRIMARY KEY,
+    email VARCHAR(100) NOT NULL,
+    otp_hash VARCHAR(255) NOT NULL,
+    purpose VARCHAR(30) NOT NULL,
+    expires_at TIMESTAMP NOT NULL,
+    attempt_count INT NOT NULL DEFAULT 0,
+    verified BOOLEAN NOT NULL DEFAULT FALSE,
+    created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    CONSTRAINT chk_email_verification_purpose CHECK (purpose IN ('REGISTER', 'FORGOT_PASSWORD'))
+);
+
 -- Foreign-key indexes
 CREATE INDEX IF NOT EXISTS idx_test_cases_problem_id ON test_cases(problem_id);
 CREATE INDEX IF NOT EXISTS idx_submissions_user_id ON submissions(user_id);
@@ -121,3 +133,5 @@ CREATE INDEX IF NOT EXISTS idx_leaderboard_user_id ON leaderboard(user_id);
 CREATE INDEX IF NOT EXISTS idx_leaderboard_contest_id ON leaderboard(contest_id);
 CREATE INDEX IF NOT EXISTS idx_user_contest_problem_user_contest ON user_contest_problem(user_id, contest_id);
 CREATE INDEX IF NOT EXISTS idx_user_contest_problem_contest_problem ON user_contest_problem(contest_id, problem_id);
+CREATE INDEX IF NOT EXISTS idx_email_verifications_email_purpose ON email_verifications(email, purpose);
+CREATE INDEX IF NOT EXISTS idx_email_verifications_expires_at ON email_verifications(expires_at);

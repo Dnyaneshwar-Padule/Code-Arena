@@ -34,6 +34,22 @@ public class UserDAOImpl implements UserDAO {
     }
 
     @Override
+    public void updateUser(User user) {
+        Transaction transaction = null;
+        try (Session session = HibernateUtil.getSessionFactory().openSession()) {
+            transaction = session.beginTransaction();
+            session.merge(user);
+            transaction.commit();
+        } catch (Exception ex) {
+            if (transaction != null) {
+                transaction.rollback();
+            }
+            LOGGER.log(Level.SEVERE, "Error updating user", ex);
+            throw new DaoException("Error updating user", ex);
+        }
+    }
+
+    @Override
     public User findById(Long id) {
         try (Session session = HibernateUtil.getSessionFactory().openSession()) {
             return session.get(User.class, id);
