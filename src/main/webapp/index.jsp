@@ -11,7 +11,7 @@
                     </p>
                     <div class="d-flex flex-column flex-sm-row gap-2 justify-content-center">
                         <a class="btn btn-primary btn-lg px-4 cta-btn" href="${pageContext.request.contextPath}/problems">Start Practicing</a>
-                        <a class="btn btn-outline-secondary btn-lg px-4 cta-btn" href="#">View Contests</a>
+                        <a class="btn btn-outline-secondary btn-lg px-4 cta-btn" href="${pageContext.request.contextPath}/contests">View Contests</a>
                     </div>
                 </div>
             </div>
