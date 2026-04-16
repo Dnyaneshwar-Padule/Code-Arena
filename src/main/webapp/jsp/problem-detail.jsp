@@ -385,6 +385,41 @@ main,
 .submission-table-wrap {
     scrollbar-width: thin;
 }
+
+
+@media (max-width: 991.98px) {
+    main,
+    .container-fluid,
+    .row.g-4.flex-grow-1,
+    .col-12.col-lg-6.d-flex.flex-column,
+    .card.border-0.shadow-sm.flex-grow-1.d-flex.flex-column,
+    .card-body.p-3.p-md-4.d-flex.flex-column.flex-grow-1,
+    .tab-content,
+    #problem-pane,
+    #submissions-pane,
+    #problem-pane.show.active,
+    #submissions-pane.show.active,
+    .problem-pane,
+    .problem-pane-scroll,
+    .submission-pane,
+    .submission-pane-scroll {
+        height: auto !important;
+        min-height: auto !important;
+        overflow: visible !important;
+    }
+
+    .row.g-4.flex-grow-1 {
+        display: block !important;
+    }
+
+    .col-12.col-lg-6.d-flex.flex-column {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+}
+
+
+
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs/loader.min.js"></script>
 <script src="${pageContext.request.contextPath}/static/js/submissions.js"></script>
@@ -421,7 +456,7 @@ main,
                 || !resultPassedCount || !resultTotalCount || !failedCaseContainer
                 || !failedInput || !failedExpectedOutput || !failedActualOutput || !problemIdInput
                 || !problemTabButton || !submissionsTabButton || !problemPane || !submissionsPane
-                || typeof require === 'undefined') {
+                || typeof window.require === 'undefined') {
             return;
         }
 
@@ -515,123 +550,133 @@ if __name__ == "__main__":
             PYTHON: 'python'
         };
 
-        require.config({
-            paths: {
-                vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs'
+
+        if (!window.__monacoInitialized) {
+            window.__monacoInitialized = true;
+
+            window.require.config({
+                paths: {
+                    vs: 'https://cdnjs.cloudflare.com/ajax/libs/monaco-editor/0.52.2/min/vs'
+                }
+            });
+
+            if (window.monaco && window.monaco.editor) {
+                return;
             }
-        });
 
-        require(['vs/editor/editor.main'], function () {
-            const defaultLanguage = languageSelect.value || 'JAVA';
-            let isDarkTheme = true;
-            const editor = monaco.editor.create(editorContainer, {
-                value: templates[defaultLanguage] || '',
-                language: monacoLanguages[defaultLanguage] || 'java',
-                theme: 'vs-dark',
-                automaticLayout: true,
-                minimap: {enabled: false}
-            });
+            window.require(['vs/editor/editor.main'], function () {
+                const defaultLanguage = languageSelect.value || 'JAVA';
+                let isDarkTheme = true;
+                const editor = monaco.editor.create(editorContainer, {
+                    value: templates[defaultLanguage] || '',
+                    language: monacoLanguages[defaultLanguage] || 'java',
+                    theme: 'vs-dark',
+                    automaticLayout: true,
+                    minimap: {enabled: false}
+                });
 
-            languageSelect.addEventListener('change', function () {
-                const selectedLanguage = this.value;
-                const model = editor.getModel();
-                if (model) {
-                    monaco.editor.setModelLanguage(model, monacoLanguages[selectedLanguage] || 'java');
+                languageSelect.addEventListener('change', function () {
+                    const selectedLanguage = this.value;
+                    const model = editor.getModel();
+                    if (model) {
+                        monaco.editor.setModelLanguage(model, monacoLanguages[selectedLanguage] || 'java');
+                    }
+                    editor.setValue(templates[selectedLanguage] || '');
+                });
+
+                submitForm.addEventListener('submit', async function (event) {
+                    event.preventDefault();
+                    const code = editor.getValue();
+                    const language = languageSelect.value;
+                    codeInput.value = code;
+                    lockButtons('Submitting...', true);
+                    try {
+                        const body = new URLSearchParams();
+                        body.set('code', code);
+                        body.set('language', language);
+                        body.set('problemId', problemIdInput.value);
+                        if (contestIdInput && contestIdInput.value) {
+                            body.set('contestId', contestIdInput.value);
+                        }
+
+                        const response = await fetch('${pageContext.request.contextPath}/submit', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                            },
+                            body: body.toString()
+                        });
+                        const payload = await response.json();
+                        if (!response.ok) {
+                            throw new Error(payload.error || 'Unable to process submission right now.');
+                        }
+                        applyResult(payload);
+                        if (submissionsUI) {
+                            await submissionsUI.loadSubmissions();
+                        }
+                    } catch (error) {
+                        applyResult({
+                            status: 'ERROR',
+                            output: '',
+                            error: error.message || 'Unable to process submission right now.',
+                            executionTime: '-',
+                            passedCount: 0,
+                            totalCount: 0
+                        });
+                    } finally {
+                        unlockButtons();
+                    }
+                });
+
+                themeToggleButton.addEventListener('click', function () {
+                    isDarkTheme = !isDarkTheme;
+                    monaco.editor.setTheme(isDarkTheme ? 'vs-dark' : 'vs');
+                    themeToggleButton.textContent = isDarkTheme ? 'Light Mode' : 'Dark Mode';
+                });
+
+                runButton.addEventListener('click', async function () {
+                    const code = editor.getValue();
+                    const language = languageSelect.value;
+                    const input = customInput.value;
+                    lockButtons('Running...', false);
+                    try {
+                        const body = new URLSearchParams();
+                        body.set('code', code);
+                        body.set('language', language);
+                        body.set('input', input);
+                        body.set('problemId', problemIdInput.value);
+
+                        const response = await fetch('${pageContext.request.contextPath}/run', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                            },
+                            body: body.toString()
+                        });
+                        const payload = await response.json();
+                        if (!response.ok) {
+                            throw new Error(payload.error || 'Unable to run code right now.');
+                        }
+                        applyResult(payload);
+                    } catch (error) {
+                        applyResult({
+                            status: 'ERROR',
+                            output: '',
+                            error: error.message || 'Unable to run code right now.',
+                            executionTime: '-',
+                            passedCount: 0,
+                            totalCount: 0
+                        });
+                    } finally {
+                        unlockButtons();
+                    }
+                });
+                if (submissionsUI) {
+                    submissionsUI.loadSubmissions();
                 }
-                editor.setValue(templates[selectedLanguage] || '');
             });
-
-            submitForm.addEventListener('submit', async function (event) {
-                event.preventDefault();
-                const code = editor.getValue();
-                const language = languageSelect.value;
-                codeInput.value = code;
-                lockButtons('Submitting...', true);
-                try {
-                    const body = new URLSearchParams();
-                    body.set('code', code);
-                    body.set('language', language);
-                    body.set('problemId', problemIdInput.value);
-                    if (contestIdInput && contestIdInput.value) {
-                        body.set('contestId', contestIdInput.value);
-                    }
-
-                    const response = await fetch('${pageContext.request.contextPath}/submit', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                        },
-                        body: body.toString()
-                    });
-                    const payload = await response.json();
-                    if (!response.ok) {
-                        throw new Error(payload.error || 'Unable to process submission right now.');
-                    }
-                    applyResult(payload);
-                    if (submissionsUI) {
-                        await submissionsUI.loadSubmissions();
-                    }
-                } catch (error) {
-                    applyResult({
-                        status: 'ERROR',
-                        output: '',
-                        error: error.message || 'Unable to process submission right now.',
-                        executionTime: '-',
-                        passedCount: 0,
-                        totalCount: 0
-                    });
-                } finally {
-                    unlockButtons();
-                }
-            });
-
-            themeToggleButton.addEventListener('click', function () {
-                isDarkTheme = !isDarkTheme;
-                monaco.editor.setTheme(isDarkTheme ? 'vs-dark' : 'vs');
-                themeToggleButton.textContent = isDarkTheme ? 'Light Mode' : 'Dark Mode';
-            });
-
-            runButton.addEventListener('click', async function () {
-                const code = editor.getValue();
-                const language = languageSelect.value;
-                const input = customInput.value;
-                lockButtons('Running...', false);
-                try {
-                    const body = new URLSearchParams();
-                    body.set('code', code);
-                    body.set('language', language);
-                    body.set('input', input);
-                    body.set('problemId', problemIdInput.value);
-
-                    const response = await fetch('${pageContext.request.contextPath}/run', {
-                        method: 'POST',
-                        headers: {
-                            'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
-                        },
-                        body: body.toString()
-                    });
-                    const payload = await response.json();
-                    if (!response.ok) {
-                        throw new Error(payload.error || 'Unable to run code right now.');
-                    }
-                    applyResult(payload);
-                } catch (error) {
-                    applyResult({
-                        status: 'ERROR',
-                        output: '',
-                        error: error.message || 'Unable to run code right now.',
-                        executionTime: '-',
-                        passedCount: 0,
-                        totalCount: 0
-                    });
-                } finally {
-                    unlockButtons();
-                }
-            });
-            if (submissionsUI) {
-                submissionsUI.loadSubmissions();
-            }
-        });
+        
+        }
 
         function lockButtons(primaryText, submitting) {
             runButton.disabled = true;

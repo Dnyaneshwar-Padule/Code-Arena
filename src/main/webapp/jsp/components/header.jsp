@@ -35,9 +35,9 @@
         }
 
         @media (max-width: 991.98px) {
-            .navbar-collapse.collapse:not(.show) {
+            /* .navbar-collapse.collapse:not(.show) {
                 display: none !important;
-            }
+            } */
 
             #mainNavbar {
                 background-color: #ffffff;
